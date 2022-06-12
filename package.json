@@ -1,0 +1,38 @@
+{
+  "name": "spotify-stats",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lukaspanni/spotify-stats.git"
+  },
+  "author": "Lukas Panni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lukaspanni/spotify-stats/issues"
+  },
+  "homepage": "https://github.com/lukaspanni/spotify-stats#readme",
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.3",
+    "@types/express": "^4.17.13",
+    "@types/node": "^17.0.42",
+    "@types/request": "^2.48.8",
+    "@typescript-eslint/eslint-plugin": "^5.27.1",
+    "@typescript-eslint/parser": "^5.27.1",
+    "eslint": "^8.17.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.6.2",
+    "typescript": "^4.7.3"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.18.1",
+    "request": "^2.88.2"
+  },
+  "scripts": {
+    "lint": "npx eslint . --ext .ts",
+    "format": "npx prettier --config .prettierrc src/**/*.ts --write"
+  }
+}
