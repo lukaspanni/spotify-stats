@@ -1,12 +1,13 @@
 import { randomBytes } from 'crypto';
-import { default as express } from 'express';
-import { default as request, Response } from 'request';
+import express from 'express';
+import request, { Response } from 'request';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 
 const clientId: string = process.env.SPOTIFY_CLIENT_ID as string;
 const clientSecret: string = process.env.SPOTIFY_CLIENT_SECRET as string;
 
-const scopes = 'user-read-private user-read-email';
+const scopes = 'user-read-private user-read-email user-top-read';
 const baseUrl = 'https://api.spotify.com/v1/';
 const accountBaseUrl = 'https://accounts.spotify.com/';
 
@@ -19,7 +20,10 @@ let redirectUrl =
 const stateKey = 'auth-state';
 
 const app = express();
-app.use(cookieParser());
+app
+  .use(express.static(__dirname + '/public'))
+  .use(cors())
+  .use(cookieParser());
 
 app.get('/login', (req, res) => {
   const state = randomBytes(16).toString('hex');
@@ -80,8 +84,8 @@ app.get('/spotify-callback', (req, res) => {
         res.redirect(
           '/#' +
             new URLSearchParams({
-              access_token: accessToken,
-              refresh_token: refreshToken
+              accessToken: accessToken,
+              refreshToken: refreshToken
             })
         );
       } else {
@@ -96,8 +100,5 @@ app.get('/spotify-callback', (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('LOL');
-});
-
 app.listen(8080);
+console.log('Listen');
