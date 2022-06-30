@@ -36,6 +36,7 @@
   "scripts": {
     "lint": "npx eslint . --ext .ts",
     "format": "npx prettier --config .prettierrc src/**/*.ts --write",
-    "build": "tsc && tsc -p tsconfig.browser.json && cp public/html/*.html dist/public/"
+    "build": "tsc && npm run build-frontend",
+    "build-frontend": "tsc -p tsconfig.browser.json && cp public/html/*.html dist/public/"
   }
 }
