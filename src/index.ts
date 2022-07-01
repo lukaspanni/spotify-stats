@@ -89,14 +89,18 @@ app.get('/spotify-callback', async (req, res) => {
         expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
         refreshToken: responseData.refresh_token
       };
-      res.redirect(
-        '/#' +
-          new URLSearchParams({
-            accessToken: accessToken.token,
-            refreshToken: accessToken.refreshToken,
-            expires: accessToken.expires.toString()
-          })
-      );
+      res.cookie('accessToken', JSON.stringify(accessToken), {
+        maxAge: 60 * 60 * 24 * 30
+      });
+      // res.redirect(
+      //   '/#' +
+      //     new URLSearchParams({
+      //       accessToken: accessToken.token,
+      //       refreshToken: accessToken.refreshToken,
+      //       expires: accessToken.expires.toString()
+      //     })
+      // );
+      res.redirect('/');
     } catch (err) {
       redirectInvalidToken(res);
       return;

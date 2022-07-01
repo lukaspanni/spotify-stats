@@ -1,12 +1,21 @@
 const baseUrl = 'https://api.spotify.com/v1/';
 const timeRange = 'long_term';
 
+//TODO extract common types
+let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
+
 type Artist = { name: string; genres: [string]; id: string; popularity: number };
 type TopArtistsResponse = { items: Artist[]; total: number };
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const accessToken = new URLSearchParams(window.location.hash.replace('#', '')).get('accessToken');
-  if (accessToken == null || accessToken == '') {
+  //const accessToken = new URLSearchParams(window.location.hash.replace('#', '')).get('accessToken');
+  const accessTokenCookie = document.cookie
+    .split(';')
+    .find((c) => c.startsWith('accessToken='))
+    ?.split('=')[1];
+
+  accessToken = JSON.parse(decodeURIComponent(accessTokenCookie ?? '{}'));
+  if (accessToken == null || accessToken.token === '') {
     const loginLink = document.createElement('a');
     loginLink.href = '/login';
     loginLink.innerText = 'Login';
@@ -16,7 +25,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const dataUrl = 'me/top/artists?time_range=' + timeRange;
 
-  const result = await fetch(baseUrl + dataUrl, { mode: 'cors', headers: { Authorization: 'Bearer ' + accessToken } });
+  const result = await fetch(baseUrl + dataUrl, {
+    mode: 'cors',
+    headers: { Authorization: 'Bearer ' + accessToken.token }
+  });
   const topArtists = (await result.json()) as TopArtistsResponse;
 
   const artistTopListContainer = document.getElementById('artists-top-list-container') as HTMLDivElement;
@@ -30,7 +42,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   topArtists.items.forEach((artist) => addArtist(artist, artistTopLevelList));
   topGenres.sort((a, b) => b.count - a.count);
   topGenres.forEach((genre) => addGenre(genre, genreList));
-  console.log(topGenres);
 });
 
 const topGenres: { genre: string; count: number }[] = [];
