@@ -16,41 +16,59 @@ type TopArtistsResponse = { items: Artist[]; total: number };
 type TopTracksResponse = { items: Track[]; total: number };
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!checkAccessToken()) {
+    insertLoginLink();
+    hideTopLists();
+    return;
+  }
+
+  getTimeRange();
+
+  const timeRangeSelector = document.getElementById('time-range-selector') as HTMLSelectElement;
+  if (timeRangeSelector !== null) {
+    timeRangeSelector.value = timeRange.replace('_', '-');
+    timeRangeSelector.addEventListener('change', selectedTimeRangeChanged);
+  }
+
+  await fetchAll();
+});
+
+const fetchAll = async () => {
+  await Promise.all([fetchTopArtists(), fetchTopTracks()]);
+};
+
+const checkAccessToken = (): boolean => {
   const accessTokenCookie = document.cookie
     .split(';')
     .find((c) => c.startsWith('accessToken='))
     ?.split('=')[1];
-
-  if (!accessTokenCookie) return;
+  if (!accessTokenCookie) return false;
 
   accessToken = JSON.parse(decodeURIComponent(accessTokenCookie));
-  if (accessToken == null || accessToken.token === '') {
-    const loginLink = document.createElement('a');
-    loginLink.href = '/login';
-    loginLink.innerText = 'Login';
-    document.getElementsByTagName('body')[0].appendChild(loginLink);
-    return;
-  }
-  //check if token is still valid and refresh if not
-  const now = new Date().getTime();
-  if (accessToken.expires < now) {
+  if (accessToken != null && accessToken.token !== '') {
+    const now = new Date().getTime();
+    //check if token is still valid and refresh if not
+    if (accessToken.expires > now) return true;
+
     console.log('refreshing token');
     console.log(accessToken);
-    //TODO
+    //TODO refresh
   }
 
-  const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
-  if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange;
+  return false;
+};
 
-  const timeRangeElement = document.querySelector('#time-range > span');
-  if (timeRangeElement !== null)
-    timeRangeElement.textContent = timeRange
-      .split('_')
-      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-      .join(' ');
+const insertLoginLink = () => {
+  const loginLink = document.createElement('a');
+  loginLink.href = '/login';
+  loginLink.innerText = 'Login';
+  document.getElementsByTagName('body')[0].appendChild(loginLink);
+};
 
-  await Promise.all([fetchTopArtists(), fetchTopTracks()]);
-});
+const hideTopLists = () => {
+  const container = document.getElementById('top-lists-container');
+  if (container != null) container.style.display = 'none';
+};
 
 const topGenres: { genre: string; count: number }[] = [];
 const pushGenre = (genre: string) => {
@@ -90,6 +108,7 @@ const fetchTopArtists = async () => {
   if (topArtists == null) return;
 
   const artistsTopListContainer = document.getElementById('artists-top-list-container') as HTMLDivElement;
+  artistsTopListContainer.innerHTML = '';
   const artistsTopLevelList = document.createElement('ul');
   artistsTopListContainer.appendChild(artistsTopLevelList);
 
@@ -112,8 +131,31 @@ const fetchTopTracks = async () => {
   if (topTracks == null) return;
 
   const tracksTopListContainer = document.getElementById('tracks-top-list-container') as HTMLDivElement;
+  tracksTopListContainer.innerHTML = '';
   const tracksTopLevelList = document.createElement('ul');
   tracksTopListContainer.appendChild(tracksTopLevelList);
 
   topTracks.items.forEach((track) => addItem(track, tracksTopLevelList));
+};
+
+const getTimeRange = () => {
+  const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
+  if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange;
+
+  const timeRangeElement = document.querySelector('#time-range > span');
+  if (timeRangeElement !== null)
+    timeRangeElement.textContent = timeRange
+      .split('_')
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(' ');
+};
+
+const selectedTimeRangeChanged = async (event: Event) => {
+  const newTimeRange = (event.target as HTMLInputElement).value.replace('-', '_');
+  if (allowedTimeRanges.includes(newTimeRange)) {
+    timeRange = newTimeRange;
+    history.pushState(null, timeRange, window.location.href.split('?')[0] + '?time_range=' + timeRange);
+    await fetchAll();
+    getTimeRange();
+  }
 };

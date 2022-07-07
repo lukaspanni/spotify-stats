@@ -90,7 +90,7 @@ app.get('/spotify-callback', async (req, res) => {
         refreshToken: responseData.refresh_token
       };
       res.cookie('accessToken', JSON.stringify(accessToken), {
-        maxAge: 60 * 60 * 24 * 30
+        maxAge: 60 * 60 * 24 * 30 * 1000
       });
       // res.redirect(
       //   '/#' +
