@@ -1,0 +1,38 @@
+@use '@material/typography/mdc-typography';
+@use '@material/layout-grid/mdc-layout-grid';
+
+body {
+  font-family: sans-serif;
+}
+
+.track-cell {
+  box-sizing: border-box;
+  background-color: #f3f3f3;
+  padding: 16px;
+  border-radius: 5px;
+
+  img {
+    border-radius: 5px;
+    // width: 300px;
+    // object-fit: none;
+    max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .info {
+    margin-top: 0.25em;
+    h5 {
+      @extend .mdc-typography--headline5;
+      margin-top: 0;
+      margin-bottom: 0.1em;
+    }
+
+    h6 {
+      @extend .mdc-typography--subtitle2;
+      margin: 0;
+      opacity: 0.6;
+    }
+  }
+}
