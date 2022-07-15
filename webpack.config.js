@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = [
   {
     mode: 'production',
-    entry: './public/style/index.scss', //['./public/style/index.scss', './public/index.ts'],
+    entry: ['./public/style/index.scss', './public/index.ts'],
     output: {
       filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist/public')
@@ -20,17 +20,16 @@ module.exports = [
     ],
     module: {
       rules: [
-        // ts-loader seems to break the typescript compilation so that the DOMContentLoaded handler is executed twice
-        // {
-        //   test: /\.ts$/,
-        //   use: [
-        //     {
-        //       loader: 'ts-loader',
-        //       options: { configFile: 'tsconfig.browser.json' }
-        //     }
-        //   ],
-        //   exclude: /node_modules/
-        // },
+        {
+          test: /\.ts$/,
+          use: [
+            {
+              loader: 'ts-loader',
+              options: { configFile: 'tsconfig.browser.json' }
+            }
+          ],
+          exclude: /node_modules/
+        },
         {
           test: /\.scss$/,
           use: [

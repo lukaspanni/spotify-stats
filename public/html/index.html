@@ -4,17 +4,53 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="index.css" rel="stylesheet" />
-    <script src="index.js"></script>
-    <!-- <script src="bundle.js"></script> -->
     <title>Spotify Stats</title>
   </head>
   <body>
     <div id="top-lists-container">
-      <select name="time-range-selector" id="time-range-selector">
-        <option value="long-term">Long Term</option>
-        <option value="medium-term">Medium Term</option>
-        <option value="short-term">Short Term</option>
-      </select>
+      <div id="time-range-select" class="mdc-select mdc-select--outlined">
+        <div class="mdc-select__anchor" role="button">
+          <span id="demo-label" class="mdc-floating-label">Time Span</span>
+          <span class="mdc-select__selected-text-container">
+            <span id="demo-selected-text" class="mdc-select__selected-text"></span>
+          </span>
+          <span class="mdc-select__dropdown-icon">
+            <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5" focusable="false">
+              <polygon
+                class="mdc-select__dropdown-icon-inactive"
+                stroke="none"
+                fill-rule="evenodd"
+                points="7 10 12 15 17 10"
+              ></polygon>
+              <polygon
+                class="mdc-select__dropdown-icon-active"
+                stroke="none"
+                fill-rule="evenodd"
+                points="7 15 12 10 17 15"
+              ></polygon>
+            </svg>
+          </span>
+          <span class="mdc-line-ripple"></span>
+        </div>
+
+        <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+          <ul class="mdc-list" role="listbox" aria-label="Time-Span select">
+            <li class="mdc-list-item" data-value="long_term" role="option">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text">Long Term </span>
+            </li>
+            <li class="mdc-list-item" data-value="medium_term" role="option">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text"> Medium Term</span>
+            </li>
+            <li class="mdc-list-item" data-value="short_term" role="option">
+              <span class="mdc-list-item__ripple"></span>
+              <span class="mdc-list-item__text"> Short Term</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <h2 id="top-tracks-header" class="mdc-typography--headline4">
         Top Tracks <span class="time-range-string"></span>
       </h2>

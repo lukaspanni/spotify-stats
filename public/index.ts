@@ -1,3 +1,4 @@
+import { MDCSelect } from '@material/select';
 const baseUrl = 'https://api.spotify.com/v1/';
 const topEndpoint = 'me/top/';
 
@@ -29,15 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     hideTopLists();
     return;
   }
-
   getTimeRange();
 
-  const timeRangeSelector = document.getElementById('time-range-selector') as HTMLSelectElement;
-  if (timeRangeSelector !== null) {
-    timeRangeSelector.value = timeRange.replace('_', '-');
-    timeRangeSelector.addEventListener('change', selectedTimeRangeChanged);
-  }
-
+  initMaterialComponents();
   await fetchAll();
 });
 
@@ -199,12 +194,19 @@ const getTimeRange = () => {
     );
 };
 
-const selectedTimeRangeChanged = async (event: Event) => {
-  const newTimeRange = (event.target as HTMLInputElement).value.replace('-', '_');
+const selectedTimeRangeChanged = async (newTimeRange: string) => {
   if (allowedTimeRanges.includes(newTimeRange)) {
     timeRange = newTimeRange;
     history.pushState(null, timeRange, window.location.href.split('?')[0] + '?time_range=' + timeRange);
     await fetchAll();
     getTimeRange();
   }
+};
+
+const initMaterialComponents = (): void => {
+  const selectElement = document.querySelector('.mdc-select');
+  if (selectElement == null) return;
+  const select = new MDCSelect(selectElement);
+  select.setSelectedIndex(allowedTimeRanges.indexOf(timeRange));
+  select.listen('MDCSelect:change', () => selectedTimeRangeChanged(select.value));
 };
