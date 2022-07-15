@@ -1,4 +1,6 @@
 import { MDCSelect } from '@material/select';
+import { MDCRipple } from '@material/ripple';
+
 const baseUrl = 'https://api.spotify.com/v1/';
 const topEndpoint = 'me/top/';
 
@@ -26,7 +28,7 @@ type TopTracksResponse = { items: Track[]; total: number };
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!checkAccessToken()) {
-    insertLoginLink();
+    insertLoginButton();
     hideTopLists();
     return;
   }
@@ -60,11 +62,28 @@ const checkAccessToken = (): boolean => {
   return false;
 };
 
-const insertLoginLink = () => {
-  const loginLink = document.createElement('a');
-  loginLink.href = '/login';
-  loginLink.innerText = 'Login';
-  document.getElementsByTagName('body')[0].appendChild(loginLink);
+const insertLoginButton = () => {
+  const loginButton = document.createElement('button');
+  loginButton.classList.add('mdc-button', 'mdc-button--raised');
+  loginButton.id = 'login-button';
+
+  const icon = document.createElement('i');
+  icon.classList.add('material-icons', 'mdc-button__icon');
+  icon.innerText = 'login';
+  loginButton.appendChild(icon);
+
+  const label = document.createElement('span');
+  label.innerText = 'Login';
+  label.className = 'mdc-button__label';
+  loginButton.appendChild(label);
+
+  const ripple = document.createElement('span');
+  ripple.className = 'mdc-button__ripple';
+  loginButton.appendChild(ripple);
+
+  new MDCRipple(loginButton);
+  loginButton.addEventListener('click', () => (document.location.href = '/login'));
+  document.getElementsByTagName('body')[0].appendChild(loginButton);
 };
 
 const hideTopLists = () => {

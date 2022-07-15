@@ -4,11 +4,24 @@
 @use '@material/menu-surface/mdc-menu-surface';
 @use '@material/menu/mdc-menu';
 @use '@material/select';
-@use '@material/select/styles';
+@use '@material/select/styles' as select-styles;
+@use '@material/button/styles' as button-styles;
+@use '@material/button';
 
 body {
   font-family: sans-serif;
   padding: 16px;
+}
+
+#login-button {
+  @include button.container-fill-color(#a1c349);
+  @include button.ink-color(#000);
+
+  width: 100%;
+  margin-top: 2%;
+  padding: 3em;
+  font-size: large;
+  font-weight: bold;
 }
 
 #time-range-select {
@@ -17,7 +30,7 @@ body {
   ul {
     padding-bottom: 0;
     li {
-      padding: 3% 3%;
+      padding: 1em 1em;
     }
   }
 }
