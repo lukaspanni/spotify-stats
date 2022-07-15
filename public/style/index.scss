@@ -1,0 +1,68 @@
+@use '@material/typography/mdc-typography';
+@use '@material/layout-grid/mdc-layout-grid';
+@use '@material/list/mdc-list';
+@use '@material/menu-surface/mdc-menu-surface';
+@use '@material/menu/mdc-menu';
+@use '@material/select';
+@use '@material/select/styles' as select-styles;
+@use '@material/button/styles' as button-styles;
+@use '@material/button';
+
+body {
+  font-family: sans-serif;
+  padding: 16px;
+}
+
+#login-button {
+  @include button.container-fill-color(#a1c349);
+  @include button.ink-color(#000);
+
+  width: 100%;
+  margin-top: 2%;
+  padding: 3em;
+  font-size: large;
+  font-weight: bold;
+}
+
+#time-range-select {
+  margin-top: 1em;
+  width: 100%;
+  ul {
+    padding-bottom: 0;
+    li {
+      padding: 1em 1em;
+    }
+  }
+}
+
+.track-cell {
+  box-sizing: border-box;
+  background-color: #f3f3f3;
+  padding: 16px;
+  border-radius: 5px;
+
+  img {
+    border-radius: 5px;
+    // width: 300px;
+    // object-fit: none;
+    max-width: 100%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .info {
+    margin-top: 0.25em;
+    h5 {
+      @extend .mdc-typography--headline5;
+      margin-top: 0;
+      margin-bottom: 0.1em;
+    }
+
+    h6 {
+      @extend .mdc-typography--subtitle2;
+      margin: 0;
+      opacity: 0.6;
+    }
+  }
+}

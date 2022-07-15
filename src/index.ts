@@ -10,16 +10,21 @@ const clientSecret: string = process.env.SPOTIFY_CLIENT_SECRET as string;
 const scopes = 'user-read-private user-read-email user-top-read';
 const baseUrl = 'https://api.spotify.com/v1/';
 const accountBaseUrl = 'https://accounts.spotify.com/';
-
-let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
+type AccessToken = {
+  token: string;
+  expires: number;
+  refreshToken?: string;
+};
 
 type TokenResponse = {
   access_token: string;
   token_type: string;
   expires_in: number;
-  refresh_token: string;
+  refresh_token?: string;
   scope: string;
 };
+
+let accessToken: AccessToken | null = null;
 
 //use codespace url for development (spotify app needs to be updated to accept this url!)
 let redirectUrl =
@@ -63,19 +68,12 @@ app.get('/spotify-callback', async (req, res) => {
   } else {
     res.clearCookie(stateKey);
 
-    const data = new URLSearchParams();
-    data.append('code', code as string);
-    data.append('redirect_uri', redirectUrl);
-    data.append('grant_type', 'authorization_code');
-
-    const options: AxiosRequestConfig = {
-      method: 'POST',
-      url: accountBaseUrl + 'api/token',
-      data: data,
-      headers: {
-        Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64')
-      }
-    };
+    const data = new URLSearchParams({
+      code: code as string,
+      redirect_uri: redirectUrl,
+      grant_type: 'authorization_code'
+    });
+    const options = buildTokenRequestOptions(data);
     //get token
     try {
       const response = await axios.request(options);
@@ -92,20 +90,50 @@ app.get('/spotify-callback', async (req, res) => {
       res.cookie('accessToken', JSON.stringify(accessToken), {
         maxAge: 60 * 60 * 24 * 30 * 1000
       });
-      // res.redirect(
-      //   '/#' +
-      //     new URLSearchParams({
-      //       accessToken: accessToken.token,
-      //       refreshToken: accessToken.refreshToken,
-      //       expires: accessToken.expires.toString()
-      //     })
-      // );
+
       res.redirect('/');
     } catch (err) {
       redirectInvalidToken(res);
       return;
     }
   }
+});
+
+app.get('/refresh-token', async (req, res) => {
+  let accessToken: AccessToken | null = null;
+  try {
+    accessToken = JSON.parse(req.cookies.accessToken);
+  } catch (err) {
+    console.error(err);
+  }
+
+  if (accessToken == null || accessToken.refreshToken === undefined) {
+    res.redirect('/login');
+    return;
+  }
+
+  const data = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: accessToken.refreshToken
+  });
+  const options: AxiosRequestConfig = buildTokenRequestOptions(data);
+  try {
+    const response = await axios.request(options);
+    const responseData = response.data as TokenResponse;
+    accessToken = {
+      token: responseData.access_token,
+      expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
+      refreshToken: responseData.refresh_token ?? accessToken.refreshToken // use old refresh token if no new one provided
+    };
+    res.cookie('accessToken', JSON.stringify(accessToken), {
+      maxAge: 60 * 60 * 24 * 30 * 1000
+    });
+  } catch (err) {
+    redirectInvalidToken(res);
+    return;
+  }
+
+  res.redirect('/');
 });
 
 app.listen(8080);
@@ -118,4 +146,14 @@ const redirectInvalidToken = (res: any) => {
         error: 'invalid_token'
       })
   );
+};
+const buildTokenRequestOptions = (data: URLSearchParams): AxiosRequestConfig<any> => {
+  return {
+    method: 'POST',
+    url: accountBaseUrl + 'api/token',
+    data: data,
+    headers: {
+      Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64')
+    }
+  };
 };
