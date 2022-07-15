@@ -4,8 +4,10 @@ import cors from 'cors';
 import axios, { AxiosRequestConfig } from 'axios';
 import cookieParser from 'cookie-parser';
 
+// get environment variables
 const clientId: string = process.env.SPOTIFY_CLIENT_ID as string;
 const clientSecret: string = process.env.SPOTIFY_CLIENT_SECRET as string;
+const redirectUrl: string = process.env.REDIRECT_URL as string;
 
 const scopes = 'user-read-private user-read-email user-top-read';
 const baseUrl = 'https://api.spotify.com/v1/';
@@ -26,15 +28,7 @@ type TokenResponse = {
 
 let accessToken: AccessToken | null = null;
 
-//use codespace url for development (spotify app needs to be updated to accept this url!)
-let redirectUrl =
-  process.env.CODESPACE_NAME !== ''
-    ? 'https://' + process.env.CODESPACE_NAME + '-8080.githubpreview.dev/spotify-callback'
-    : 'http://localhost:8080/spotify-callback';
-redirectUrl = 'http://localhost:8080/spotify-callback';
-
 const stateKey = 'auth-state';
-
 const app = express();
 app
   .use(express.static(__dirname + '/public'))
@@ -136,7 +130,7 @@ app.get('/refresh-token', async (req, res) => {
   res.redirect('/');
 });
 
-app.listen(8080);
+app.listen(80);
 console.log('Listen');
 
 const redirectInvalidToken = (res: any) => {
