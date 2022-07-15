@@ -59,8 +59,7 @@ const checkAccessToken = (): boolean => {
     if (accessToken.expires > now) return true;
 
     console.log('refreshing token');
-    console.log(accessToken);
-    //TODO refresh
+    window.location.href = '/refresh-token';
   }
 
   return false;
