@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 const clientId: string = process.env.SPOTIFY_CLIENT_ID as string;
 const clientSecret: string = process.env.SPOTIFY_CLIENT_SECRET as string;
 const redirectUrl: string = process.env.REDIRECT_URL as string;
+const port: number = Number(process.env.PORT) || 8080;
 
 const scopes = 'user-read-private user-read-email user-top-read';
 const baseUrl = 'https://api.spotify.com/v1/';
@@ -130,8 +131,8 @@ app.get('/refresh-token', async (req, res) => {
   res.redirect('/');
 });
 
-app.listen(80);
-console.log('Listen');
+app.listen(port);
+console.log('Listen on ', port);
 
 const redirectInvalidToken = (res: any) => {
   res.redirect(
