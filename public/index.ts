@@ -1,6 +1,7 @@
 import { MDCSelect } from '@material/select';
 import { MDCRipple } from '@material/ripple';
 import { Artist, TimeRange, TopListsClient, Track } from './top-lists-client';
+import { TopListsClientFactory } from './top-lists-client-factory';
 
 let topListsClient: TopListsClient;
 const allowedTimeRanges: string[] = ['long_term', 'medium_term', 'short_term'];
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    topListsClient = new TopListsClient(accessToken?.token);
+    topListsClient = new TopListsClientFactory().getTopListsClient(accessToken?.token);
   } catch (e) {
     console.error(e);
     return; // cannot continue, TODO: error message
