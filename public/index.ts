@@ -1,30 +1,13 @@
 import { MDCSelect } from '@material/select';
 import { MDCRipple } from '@material/ripple';
+import { Artist, TimeRange, TopListsClient, Track } from './top-lists-client';
 
-const baseUrl = 'https://api.spotify.com/v1/';
-const topEndpoint = 'me/top/';
-
-const topArtistsUrl = baseUrl + topEndpoint + 'artists';
-const topTracksUrl = baseUrl + topEndpoint + 'tracks';
-
-const allowedTimeRanges = ['long_term', 'medium_term', 'short_term'];
-let timeRange: string = 'long_term';
+let topListsClient: TopListsClient;
+const allowedTimeRanges: string[] = ['long_term', 'medium_term', 'short_term'];
+let timeRange: TimeRange = 'long_term';
 
 //TODO extract common types
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
-
-type Image = { url: string; height: number; width: number };
-type Artist = { name: string; genres: string[]; id: string; popularity: number; images: Image[] };
-
-type Track = {
-  name: string;
-  artists: Artist[];
-  id: string;
-  popularity: number;
-  album: { name: string; images: Image[] };
-};
-type TopArtistsResponse = { items: Artist[]; total: number };
-type TopTracksResponse = { items: Track[]; total: number };
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!checkAccessToken()) {
@@ -32,15 +15,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     hideTopLists();
     return;
   }
-  getTimeRange();
 
+  try {
+    topListsClient = new TopListsClient(accessToken?.token);
+  } catch (e) {
+    console.error(e);
+    return; // cannot continue, TODO: error message
+  }
+
+  getTimeRange();
   initMaterialComponents();
   await fetchAll();
 });
-
-const fetchAll = async () => {
-  await Promise.all([fetchTopArtists(), fetchTopTracks()]);
-};
 
 const checkAccessToken = (): boolean => {
   const accessTokenCookie = document.cookie
@@ -90,117 +76,17 @@ const hideTopLists = () => {
   const container = document.getElementById('top-lists-container');
   if (container != null) container.style.display = 'none';
 };
-
-const topGenres: { genre: string; count: number }[] = [];
-const pushGenre = (genre: string) => {
-  const exists = topGenres.find((g) => g.genre === genre);
-  if (exists) {
-    exists.count++;
-  } else {
-    topGenres.push({ genre, count: 1 });
-  }
-};
-
-//TODO: extract duplicated code
-const addArtist = (index: number, artist: Artist, grid: HTMLDivElement): void => {
-  const artistItem = document.createElement('div');
-  artistItem.classList.add(
-    'track-cell',
-    'mdc-layout-grid__cell',
-    'mdc-layout-grid__cell--span-3-desktop',
-    'mdc-layout-grid__cell--span-6-tablet'
-  );
-  // use smallest image at least 300x300px, default order is widest first
-  const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
-  if (imageUrl) {
-    const image = document.createElement('img');
-    image.src = imageUrl;
-    artistItem.appendChild(image);
-  }
-  const artistInfo = document.createElement('div');
-  artistInfo.classList.add('info');
-  artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
-  artistItem.appendChild(artistInfo);
-  grid.appendChild(artistItem);
-};
-
-const addTrack = (index: number, track: Track, grid: HTMLDivElement): void => {
-  const trackItem = document.createElement('div');
-  trackItem.classList.add(
-    'track-cell',
-    'mdc-layout-grid__cell',
-    'mdc-layout-grid__cell--span-2-desktop',
-    'mdc-layout-grid__cell--span-4-tablet'
-  );
-  // only use 300x300px images
-  const imageUrl = track.album.images.find((i) => i.height === 300)?.url;
-  if (imageUrl) {
-    const image = document.createElement('img');
-    image.src = imageUrl;
-    trackItem.appendChild(image);
-  }
-  const trackInfo = document.createElement('div');
-  trackInfo.classList.add('info');
-  trackInfo.innerHTML = `<h5>${index + '. ' + track.name}</h5><h6>${track.artists.map((a) => a.name).join(', ')}</h6>`;
-  trackItem.appendChild(trackInfo);
-  grid.appendChild(trackItem);
-};
-
-const addGenre = (genre: { genre: string; count: number }, list: HTMLUListElement) => {
-  const genreItem = document.createElement('li');
-  genreItem.textContent = genre.genre;
-  list.appendChild(genreItem);
-};
-
-const fetchTopData = async <T>(url: string, limit: number = 10, offset: number = 0): Promise<T | undefined> => {
-  if (accessToken == null) return;
-  if (limit < 0) limit = 0;
-  if (offset < 0) offset = 0;
-  if (offset > 49) offset = 49;
-  if (offset + limit > 50) limit = 50 - offset;
-
-  const result = await fetch(`${url}?limit=${limit}&offset=${offset}&time_range=${timeRange}`, {
-    mode: 'cors',
-    headers: { Authorization: 'Bearer ' + accessToken.token }
-  });
-
-  return await result.json();
-};
-
-const fetchTopArtists = async () => {
-  const topArtists = await fetchTopData<TopArtistsResponse>(topArtistsUrl);
-  if (topArtists == null) return;
-
-  const topArtistsGrid = document.querySelector('#top-artists-grid .grid-content') as HTMLDivElement;
-  topArtistsGrid.innerHTML = '';
-
-  // //TODO: better way to determine top Genres
-  // // const genreTopListContainer = document.getElementById('genres-top-list-container') as HTMLDivElement;
-  // // const genreList = document.createElement('ul');
-  // // genreTopListContainer.appendChild(genreList);
-
-  topArtists.items.forEach((artist, index) => {
-    addArtist(++index, artist, topArtistsGrid);
-    //artist.genres.forEach((genre) => pushGenre(genre));
-  });
-
-  // topGenres.sort((a, b) => b.count - a.count);
-  // topGenres.forEach((genre) => addGenre(genre, genreList));
-};
-
-const fetchTopTracks = async () => {
-  const topTracks = await fetchTopData<TopTracksResponse>(topTracksUrl);
-  if (topTracks == null) return;
-
-  const topTracksGrid = document.querySelector('#top-tracks-grid .grid-content') as HTMLDivElement;
-  topTracksGrid.innerHTML = '';
-
-  topTracks.items.forEach((track, index) => addTrack(++index, track, topTracksGrid));
+const initMaterialComponents = (): void => {
+  const selectElement = document.querySelector('.mdc-select');
+  if (selectElement == null) return;
+  const select = new MDCSelect(selectElement);
+  select.setSelectedIndex(allowedTimeRanges.indexOf(timeRange));
+  select.listen('MDCSelect:change', () => selectedTimeRangeChanged(select.value));
 };
 
 const getTimeRange = () => {
   const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
-  if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange;
+  if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange as TimeRange;
 
   const timeRangeElements = document.querySelectorAll('span.time-range-string') as NodeListOf<HTMLSpanElement>;
   if (timeRangeElements.length > 0)
@@ -215,17 +101,80 @@ const getTimeRange = () => {
 
 const selectedTimeRangeChanged = async (newTimeRange: string) => {
   if (allowedTimeRanges.includes(newTimeRange)) {
-    timeRange = newTimeRange;
+    timeRange = newTimeRange as TimeRange;
     history.pushState(null, timeRange, window.location.href.split('?')[0] + '?time_range=' + timeRange);
     await fetchAll();
     getTimeRange();
   }
 };
 
-const initMaterialComponents = (): void => {
-  const selectElement = document.querySelector('.mdc-select');
-  if (selectElement == null) return;
-  const select = new MDCSelect(selectElement);
-  select.setSelectedIndex(allowedTimeRanges.indexOf(timeRange));
-  select.listen('MDCSelect:change', () => selectedTimeRangeChanged(select.value));
+const addArtistCell = (index: number, artist: Artist, grid: HTMLDivElement): void => {
+  const artistItem = createCell();
+  // use smallest image at least 300x300px, default order is widest first
+  const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
+  if (imageUrl) {
+    const image = document.createElement('img');
+    image.src = imageUrl;
+    artistItem.appendChild(image);
+  }
+  const artistInfo = document.createElement('div');
+  artistInfo.classList.add('info');
+  artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
+  artistItem.appendChild(artistInfo);
+  grid.appendChild(artistItem);
+};
+
+const addTrackCell = (index: number, track: Track, grid: HTMLDivElement): void => {
+  const trackItem = createCell();
+  // only use 300x300px images
+  const imageUrl = track.album.images.find((i) => i.height === 300)?.url;
+  if (imageUrl) {
+    const image = document.createElement('img');
+    image.src = imageUrl;
+    trackItem.appendChild(image);
+  }
+  const trackInfo = document.createElement('div');
+  trackInfo.classList.add('info');
+  trackInfo.innerHTML = `<h5>${index + '. ' + track.name}</h5><h6>${track.artists.map((a) => a.name).join(', ')}</h6>`;
+  trackItem.appendChild(trackInfo);
+  grid.appendChild(trackItem);
+};
+
+const createCell = (): HTMLDivElement => {
+  const cell = document.createElement('div');
+  cell.classList.add(
+    'track-cell',
+    'mdc-layout-grid__cell',
+    'mdc-layout-grid__cell--span-2-desktop',
+    'mdc-layout-grid__cell--span-4-tablet'
+  );
+  return cell;
+};
+
+const fetchAll = async () => {
+  return Promise.all([fetchTopArtists(), fetchTopTracks()]);
+};
+
+const fetchTopArtists = async () => {
+  //TODO: limit and offset
+  const topArtists = await topListsClient.getTopArtists(timeRange as TimeRange);
+  if (topArtists == null) return;
+
+  const topArtistsGrid = document.querySelector('#top-artists-grid .grid-content') as HTMLDivElement;
+  topArtistsGrid.innerHTML = '';
+
+  topArtists.items.forEach((artist, index) => {
+    addArtistCell(++index, artist, topArtistsGrid);
+  });
+};
+
+const fetchTopTracks = async () => {
+  //TODO: limit and offset
+  const topTracks = await topListsClient.getTopTracks(timeRange as TimeRange);
+  if (topTracks == null) return;
+
+  const topTracksGrid = document.querySelector('#top-tracks-grid .grid-content') as HTMLDivElement;
+  topTracksGrid.innerHTML = '';
+
+  topTracks.items.forEach((track, index) => addTrackCell(++index, track, topTracksGrid));
 };
