@@ -12,11 +12,6 @@ let artistOffset = 0;
 let trackLimit = 10;
 let trackOffset = 0;
 
-const grids = {
-  topArtistsGrid: document.getElementById('artist-grid') as HTMLDivElement,
-  topTracksGrid: document.getElementById('track-grid') as HTMLDivElement
-};
-
 //TODO extract common types
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
 
@@ -120,7 +115,7 @@ const selectedTimeRangeChanged = async (newTimeRange: string) => {
   }
 };
 
-const addArtistCell = (index: number, artist: Artist, grid: HTMLDivElement): void => {
+const addArtistCell = (index: number, artist: Artist): void => {
   const artistItem = createCell();
   // use smallest image at least 300x300px, default order is widest first
   const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
@@ -129,10 +124,10 @@ const addArtistCell = (index: number, artist: Artist, grid: HTMLDivElement): voi
   artistInfo.classList.add('info');
   artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
   artistItem.appendChild(artistInfo);
-  grid.appendChild(artistItem);
+  (document.getElementById('top-artists-grid') as HTMLDivElement).appendChild(artistItem);
 };
 
-const addTrackCell = (index: number, track: Track, grid: HTMLDivElement): void => {
+const addTrackCell = (index: number, track: Track): void => {
   const trackItem = createCell();
   // only use 300x300px images
   const imageUrl = track.album.images.find((i) => i.height === 300)?.url;
@@ -141,7 +136,7 @@ const addTrackCell = (index: number, track: Track, grid: HTMLDivElement): void =
   trackInfo.classList.add('info');
   trackInfo.innerHTML = `<h5>${index + '. ' + track.name}</h5><h6>${track.artists.map((a) => a.name).join(', ')}</h6>`;
   trackItem.appendChild(trackInfo);
-  grid.appendChild(trackItem);
+  (document.getElementById('top-tracks-grid') as HTMLDivElement).appendChild(trackItem);
 };
 
 const createCell = (): HTMLDivElement => {
@@ -163,8 +158,8 @@ const insertImage = (item: HTMLDivElement, imageUrl?: string) => {
 };
 
 const resetTopLists = () => {
-  grids.topArtistsGrid.innerHTML = '';
-  grids.topTracksGrid.innerHTML = '';
+  (document.getElementById('top-artists-grid') as HTMLDivElement).innerHTML = '';
+  (document.getElementById('top-tracks-grid') as HTMLDivElement).innerHTML = '';
 };
 
 const fetchAll = async () => {
@@ -174,11 +169,11 @@ const fetchAll = async () => {
 const fetchTopArtists = async () => {
   const topArtists = await topListsClient.getTopArtists(timeRange as TimeRange, artistLimit, artistOffset);
   if (topArtists == null) return;
-  topArtists.items.forEach((artist, index) => addArtistCell(++index, artist, grids.topArtistsGrid));
+  topArtists.items.forEach((artist, index) => addArtistCell(++index, artist));
 };
 
 const fetchTopTracks = async () => {
   const topTracks = await topListsClient.getTopTracks(timeRange as TimeRange, trackLimit, trackOffset);
   if (topTracks == null) return;
-  topTracks.items.forEach((track, index) => addTrackCell(++index, track, grids.topTracksGrid));
+  topTracks.items.forEach((track, index) => addTrackCell(++index, track));
 };
