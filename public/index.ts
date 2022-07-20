@@ -124,7 +124,7 @@ const addArtistCell = (index: number, artist: Artist): void => {
   artistInfo.classList.add('info');
   artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
   artistItem.appendChild(artistInfo);
-  (document.getElementById('top-artists-grid') as HTMLDivElement).appendChild(artistItem);
+  (document.getElementById('top-artists-grid-inner') as HTMLDivElement).appendChild(artistItem);
 };
 
 const addTrackCell = (index: number, track: Track): void => {
@@ -136,7 +136,7 @@ const addTrackCell = (index: number, track: Track): void => {
   trackInfo.classList.add('info');
   trackInfo.innerHTML = `<h5>${index + '. ' + track.name}</h5><h6>${track.artists.map((a) => a.name).join(', ')}</h6>`;
   trackItem.appendChild(trackInfo);
-  (document.getElementById('top-tracks-grid') as HTMLDivElement).appendChild(trackItem);
+  (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).appendChild(trackItem);
 };
 
 const createCell = (): HTMLDivElement => {
@@ -158,8 +158,8 @@ const insertImage = (item: HTMLDivElement, imageUrl?: string) => {
 };
 
 const resetTopLists = () => {
-  (document.getElementById('top-artists-grid') as HTMLDivElement).innerHTML = '';
-  (document.getElementById('top-tracks-grid') as HTMLDivElement).innerHTML = '';
+  (document.getElementById('top-artists-grid-inner') as HTMLDivElement).innerHTML = '';
+  (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).innerHTML = '';
 };
 
 const fetchAll = async () => {
