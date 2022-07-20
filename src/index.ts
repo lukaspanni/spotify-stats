@@ -98,11 +98,10 @@ app.get('/refresh-token', async (req, res) => {
   let accessToken: AccessToken | null = null;
   try {
     accessToken = JSON.parse(req.cookies.accessToken);
+    if (accessToken == null || accessToken.refreshToken === undefined) throw new Error('No refresh token provided');
   } catch (err) {
-    console.error(err);
-  }
-
-  if (accessToken == null || accessToken.refreshToken === undefined) {
+    console.error('Error', err);
+    res.cookie('accessToken', '{}');
     res.redirect('/login');
     return;
   }
@@ -124,6 +123,7 @@ app.get('/refresh-token', async (req, res) => {
       maxAge: 60 * 60 * 24 * 30 * 1000
     });
   } catch (err) {
+    res.cookie('accessToken', '{}');
     redirectInvalidToken(res);
     return;
   }
