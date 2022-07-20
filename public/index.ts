@@ -6,6 +6,16 @@ let topListsClient: TopListsClient;
 const allowedTimeRanges: string[] = ['long_term', 'medium_term', 'short_term'];
 let timeRange: TimeRange = 'long_term';
 
+let artistLimit = 10;
+let artistOffset = 0;
+let trackLimit = 10;
+let trackOffset = 0;
+
+const grids = {
+  topArtistsGrid: document.getElementById('artist-grid') as HTMLDivElement,
+  topTracksGrid: document.getElementById('track-grid') as HTMLDivElement
+};
+
 //TODO extract common types
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
 
@@ -25,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   getTimeRange();
   initMaterialComponents();
+  resetTopLists();
   await fetchAll();
 });
 
@@ -76,6 +87,7 @@ const hideTopLists = () => {
   const container = document.getElementById('top-lists-container');
   if (container != null) container.style.display = 'none';
 };
+
 const initMaterialComponents = (): void => {
   const selectElement = document.querySelector('.mdc-select');
   if (selectElement == null) return;
@@ -88,21 +100,20 @@ const getTimeRange = () => {
   const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
   if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange as TimeRange;
 
-  const timeRangeElements = document.querySelectorAll('span.time-range-string') as NodeListOf<HTMLSpanElement>;
-  if (timeRangeElements.length > 0)
-    timeRangeElements.forEach(
-      (item) =>
-        (item.textContent = timeRange
-          .split('_')
-          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-          .join(' '))
-    );
+  const timeRangeString = timeRange
+    .split('_')
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(' ');
+  (document.querySelectorAll('span.time-range-string') as NodeListOf<HTMLSpanElement>).forEach(
+    (timeRangeElement) => (timeRangeElement.textContent = timeRangeString)
+  );
 };
 
 const selectedTimeRangeChanged = async (newTimeRange: string) => {
   if (allowedTimeRanges.includes(newTimeRange)) {
     timeRange = newTimeRange as TimeRange;
     history.pushState(null, timeRange, window.location.href.split('?')[0] + '?time_range=' + timeRange);
+    resetTopLists(); // make sure old data is cleared
     await fetchAll();
     getTimeRange();
   }
@@ -112,11 +123,7 @@ const addArtistCell = (index: number, artist: Artist, grid: HTMLDivElement): voi
   const artistItem = createCell();
   // use smallest image at least 300x300px, default order is widest first
   const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
-  if (imageUrl) {
-    const image = document.createElement('img');
-    image.src = imageUrl;
-    artistItem.appendChild(image);
-  }
+  insertImage(artistItem, imageUrl);
   const artistInfo = document.createElement('div');
   artistInfo.classList.add('info');
   artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
@@ -128,11 +135,7 @@ const addTrackCell = (index: number, track: Track, grid: HTMLDivElement): void =
   const trackItem = createCell();
   // only use 300x300px images
   const imageUrl = track.album.images.find((i) => i.height === 300)?.url;
-  if (imageUrl) {
-    const image = document.createElement('img');
-    image.src = imageUrl;
-    trackItem.appendChild(image);
-  }
+  insertImage(trackItem, imageUrl);
   const trackInfo = document.createElement('div');
   trackInfo.classList.add('info');
   trackInfo.innerHTML = `<h5>${index + '. ' + track.name}</h5><h6>${track.artists.map((a) => a.name).join(', ')}</h6>`;
@@ -151,30 +154,30 @@ const createCell = (): HTMLDivElement => {
   return cell;
 };
 
+const insertImage = (item: HTMLDivElement, imageUrl?: string) => {
+  if (!imageUrl) return;
+  const image = document.createElement('img');
+  image.src = imageUrl;
+  item.appendChild(image);
+};
+
+const resetTopLists = () => {
+  grids.topArtistsGrid.innerHTML = '';
+  grids.topTracksGrid.innerHTML = '';
+};
+
 const fetchAll = async () => {
   return Promise.all([fetchTopArtists(), fetchTopTracks()]);
 };
 
 const fetchTopArtists = async () => {
-  //TODO: limit and offset
-  const topArtists = await topListsClient.getTopArtists(timeRange as TimeRange);
+  const topArtists = await topListsClient.getTopArtists(timeRange as TimeRange, artistLimit, artistOffset);
   if (topArtists == null) return;
-
-  const topArtistsGrid = document.querySelector('#top-artists-grid .grid-content') as HTMLDivElement;
-  topArtistsGrid.innerHTML = '';
-
-  topArtists.items.forEach((artist, index) => {
-    addArtistCell(++index, artist, topArtistsGrid);
-  });
+  topArtists.items.forEach((artist, index) => addArtistCell(++index, artist, grids.topArtistsGrid));
 };
 
 const fetchTopTracks = async () => {
-  //TODO: limit and offset
-  const topTracks = await topListsClient.getTopTracks(timeRange as TimeRange);
+  const topTracks = await topListsClient.getTopTracks(timeRange as TimeRange, trackLimit, trackOffset);
   if (topTracks == null) return;
-
-  const topTracksGrid = document.querySelector('#top-tracks-grid .grid-content') as HTMLDivElement;
-  topTracksGrid.innerHTML = '';
-
-  topTracks.items.forEach((track, index) => addTrackCell(++index, track, topTracksGrid));
+  topTracks.items.forEach((track, index) => addTrackCell(++index, track, grids.topTracksGrid));
 };
