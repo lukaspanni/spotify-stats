@@ -1,87 +1,84 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="index.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-    <title>Top Lists</title>
-  </head>
-  <body>
-    <div id="authorize-container" class="main-content">
-      <h1 class="mdc-typography--headline2">Your top tracks and artists on Spotify!</h1>
-      <h3 class="mdc-typography--headline4">Authorize your Spotify account to see your top tracks and artists.</h3>
 
-      <button class="mdc-button mdc-button--raised mdc-ripple-upgraded" id="login-button">
-        <i class="material-icons mdc-button__icon">login</i><span class="mdc-button__label">Authorize</span
-        ><span class="mdc-button__ripple"></span>
-      </button>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="index.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  <title>Top Lists</title>
+</head>
 
-    <div id="top-lists-container" style="display: none" class="main-content">
-      <div id="time-range-select" class="mdc-select mdc-select--outlined">
-        <div class="mdc-select__anchor" role="button">
-          <span id="demo-label" class="mdc-floating-label">Time Span</span>
-          <span class="mdc-select__selected-text-container">
-            <span id="demo-selected-text" class="mdc-select__selected-text"></span>
-          </span>
-          <span class="mdc-select__dropdown-icon">
-            <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5" focusable="false">
-              <polygon
-                class="mdc-select__dropdown-icon-inactive"
-                stroke="none"
-                fill-rule="evenodd"
-                points="7 10 12 15 17 10"
-              ></polygon>
-              <polygon
-                class="mdc-select__dropdown-icon-active"
-                stroke="none"
-                fill-rule="evenodd"
-                points="7 15 12 10 17 15"
-              ></polygon>
-            </svg>
-          </span>
-          <span class="mdc-line-ripple"></span>
-        </div>
+<body>
+  <div id="authorize-container" class="main-content">
+    <h1 class="mdc-typography--headline2">Your top tracks and artists on Spotify!</h1>
+    <h3 class="mdc-typography--headline4">Authorize your Spotify account to see your top tracks and artists.</h3>
 
-        <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
-          <ul class="mdc-list" role="listbox" aria-label="Time-Span select">
-            <li class="mdc-list-item" data-value="long_term" role="option">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">All-time</span>
-            </li>
-            <li class="mdc-list-item" data-value="medium_term" role="option">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Last half year (approx.)</span>
-            </li>
-            <li class="mdc-list-item" data-value="short_term" role="option">
-              <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Last four weeks (approx.)</span>
-            </li>
-          </ul>
-        </div>
+    <button class="mdc-button mdc-button--raised mdc-ripple-upgraded" id="login-button">
+      <a href="/login">
+        <i class="material-icons mdc-button__icon">login</i><span class="mdc-button__label">Authorize</span><span
+          class="mdc-button__ripple"></span>
+      </a>
+    </button>
+  </div>
+
+  <div id="top-lists-container" style="display: none" class="main-content">
+    <div id="time-range-select" class="mdc-select mdc-select--outlined">
+      <div class="mdc-select__anchor" role="button">
+        <span id="demo-label" class="mdc-floating-label">Time Span</span>
+        <span class="mdc-select__selected-text-container">
+          <span id="demo-selected-text" class="mdc-select__selected-text"></span>
+        </span>
+        <span class="mdc-select__dropdown-icon">
+          <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5" focusable="false">
+            <polygon class="mdc-select__dropdown-icon-inactive" stroke="none" fill-rule="evenodd"
+              points="7 10 12 15 17 10"></polygon>
+            <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd"
+              points="7 15 12 10 17 15"></polygon>
+          </svg>
+        </span>
+        <span class="mdc-line-ripple"></span>
       </div>
 
-      <h2 id="top-tracks-header" class="mdc-typography--headline4">
-        Top Tracks <span class="time-range-string"></span>
-      </h2>
-      <div id="top-tracks-grid" class="mdc-layout-grid">
-        <div class="mdc-layout-grid__inner grid-content" id="top-tracks-grid-inner"></div>
-      </div>
-      <h2 id="top-artists-header" class="mdc-typography--headline4">
-        Top Artists <span class="time-range-string"></span>
-      </h2>
-      <div id="top-artists-grid" class="mdc-layout-grid">
-        <div class="mdc-layout-grid__inner grid-content" id="top-artists-grid-inner"></div>
+      <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth">
+        <ul class="mdc-list" role="listbox" aria-label="Time-Span select">
+          <li class="mdc-list-item" data-value="long_term" role="option">
+            <span class="mdc-list-item__ripple"></span>
+            <span class="mdc-list-item__text">All-time</span>
+          </li>
+          <li class="mdc-list-item" data-value="medium_term" role="option">
+            <span class="mdc-list-item__ripple"></span>
+            <span class="mdc-list-item__text">Last half year (approx.)</span>
+          </li>
+          <li class="mdc-list-item" data-value="short_term" role="option">
+            <span class="mdc-list-item__ripple"></span>
+            <span class="mdc-list-item__text">Last four weeks (approx.)</span>
+          </li>
+        </ul>
       </div>
     </div>
-    <footer class="footer">
-      <span><i class="material-icons">copyright</i>2022 Lukas Panni</span>
-      <br />
-      <div class="footer-links">
-        <a target="_blank" href="https://blog.lukaspanni.de/impressum/">Impressum</a>
-        <a target="_blank" href="https://github.com/lukaspanni/spotify-stats">GitHub</a>
-      </div>
-    </footer>
-  </body>
+
+    <h2 id="top-tracks-header" class="mdc-typography--headline4">
+      Top Tracks <span class="time-range-string"></span>
+    </h2>
+    <div id="top-tracks-grid" class="mdc-layout-grid">
+      <div class="mdc-layout-grid__inner grid-content" id="top-tracks-grid-inner"></div>
+    </div>
+    <h2 id="top-artists-header" class="mdc-typography--headline4">
+      Top Artists <span class="time-range-string"></span>
+    </h2>
+    <div id="top-artists-grid" class="mdc-layout-grid">
+      <div class="mdc-layout-grid__inner grid-content" id="top-artists-grid-inner"></div>
+    </div>
+  </div>
+  <footer class="footer">
+    <span><i class="material-icons">copyright</i>2022 Lukas Panni</span>
+    <br />
+    <div class="footer-links">
+      <a target="_blank" href="https://blog.lukaspanni.de/impressum/">Impressum</a>
+      <a target="_blank" href="https://github.com/lukaspanni/spotify-stats">GitHub</a>
+    </div>
+  </footer>
+</body>
+
 </html>

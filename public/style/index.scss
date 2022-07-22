@@ -30,13 +30,20 @@ body {
   padding: 3em;
   font-size: large;
   font-weight: bold;
+
+  a {
+    text-decoration: none;
+    color: white;
+  }
 }
 
 #time-range-select {
   margin-top: 1em;
   width: 100%;
+
   ul {
     padding-bottom: 0;
+
     li {
       padding: 1em 1em;
     }
@@ -67,6 +74,7 @@ body {
 
   .info {
     margin-top: 0.25em;
+
     h5 {
       @extend .mdc-typography--headline5;
       margin-top: 0;
@@ -98,12 +106,15 @@ footer {
 
   .footer-links {
     margin-top: 0.2em;
+
     a {
       color: white;
       text-decoration: underline;
+
       :visited {
         color: white;
       }
+
       margin: 0 0.2em;
     }
   }
