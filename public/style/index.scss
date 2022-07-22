@@ -16,9 +16,8 @@ body {
   margin: 0;
 }
 
-.main-content{
+.main-content {
   padding: 16px;
-
 }
 
 #login-button {
@@ -44,7 +43,7 @@ body {
   }
 }
 
-.track-cell {
+.cell {
   box-sizing: border-box;
   background-color: #f3f3f3;
   padding: 16px;
@@ -61,12 +60,18 @@ body {
     margin-right: auto;
   }
 
+  .spotify-link {
+    text-decoration: none;
+    color: #000;
+  }
+
   .info {
     margin-top: 0.25em;
     h5 {
       @extend .mdc-typography--headline5;
       margin-top: 0;
       margin-bottom: 0.1em;
+      text-decoration: underline;
     }
 
     h6 {
@@ -77,9 +82,7 @@ body {
   }
 }
 
-
-
-footer{
+footer {
   width: 100%;
   padding: 1em 0;
   margin-top: auto;
@@ -88,20 +91,20 @@ footer{
   background-color: rgb(110, 110, 110);
   color: white;
 
-  .material-icons{
+  .material-icons {
     font-size: 1em;
     margin-right: 0.2em;
   }
 
-  .footer-links{
+  .footer-links {
     margin-top: 0.2em;
-    a{
+    a {
       color: white;
       text-decoration: underline;
-      :visited{
+      :visited {
         color: white;
       }
+      margin: 0 0.2em;
     }
   }
- 
 }

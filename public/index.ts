@@ -1,6 +1,6 @@
 import { MDCSelect } from '@material/select';
 import { MDCRipple } from '@material/ripple';
-import { Artist, TimeRange, TopListsClient, Track } from './top-lists-client';
+import { Artist, SpotifyTopListElement, TimeRange, TopListsClient, Track } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 
 let topListsClient: TopListsClient;
@@ -17,8 +17,10 @@ let accessToken: { token: string; expires: number; refreshToken: string } | null
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!checkAccessToken()) {
-    activateNonAuthorizedView();
+    initializeView(false);
     return;
+  } else {
+    initializeView(true);
   }
 
   try {
@@ -54,13 +56,13 @@ const checkAccessToken = (): boolean => {
   return false;
 };
 
-const activateNonAuthorizedView = () => {
+const initializeView = (authorized: boolean) => {
   const topListsContainer = document.getElementById('top-lists-container');
-  if (topListsContainer != null) topListsContainer.style.display = 'none';
+  if (topListsContainer != null) topListsContainer.style.display = authorized ? 'block' : 'none';
 
   const authorizeContainer = document.getElementById('authorize-container');
   if (authorizeContainer != null) {
-    authorizeContainer.style.display = 'block';
+    authorizeContainer.style.display = authorized ? 'none' : 'block';
   }
 };
 
@@ -96,49 +98,55 @@ const selectedTimeRangeChanged = async (newTimeRange: string) => {
 };
 
 const addArtistCell = (index: number, artist: Artist): void => {
-  const artistItem = createCell();
   // use smallest image at least 300x300px, default order is widest first
   const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
-  insertImage(artistItem, imageUrl);
+  if (!imageUrl) return;
+  const image = document.createElement('img');
+  image.src = imageUrl;
   const artistInfo = document.createElement('div');
   artistInfo.classList.add('info');
   artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
-  artistItem.appendChild(artistInfo);
+
+  const artistItem = createCell(artist, image, artistInfo);
   (document.getElementById('top-artists-grid-inner') as HTMLDivElement).appendChild(artistItem);
 };
 
 const addTrackCell = (index: number, track: Track): void => {
-  const trackItem = createCell();
   // only use 300x300px images
   const imageUrl = track.album.images.find((i) => i.height === 300)?.url;
-  insertImage(trackItem, imageUrl);
+  if (!imageUrl) return;
+  const image = document.createElement('img');
+  image.src = imageUrl;
+
   const trackInfo = document.createElement('div');
   trackInfo.classList.add('info');
   trackInfo.innerHTML = `<h5>${index + '. ' + track.name}</h5><h6>${track.artists.map((a) => a.name).join(', ')}</h6>`;
-  trackItem.appendChild(trackInfo);
+
+  const trackItem = createCell(track, image, trackInfo);
   (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).appendChild(trackItem);
 };
 
-const createCell = (): HTMLDivElement => {
+const createCell = (topListElement: SpotifyTopListElement, ...content: HTMLElement[]): HTMLDivElement => {
   const cell = document.createElement('div');
   cell.classList.add(
-    'track-cell',
+    'cell',
     'mdc-layout-grid__cell',
     'mdc-layout-grid__cell--span-2-desktop',
     'mdc-layout-grid__cell--span-4-tablet'
   );
+  const link = document.createElement('a');
+  link.classList.add('spotify-link');
+  link.href = topListElement.external_urls.spotify;
+  link.target = '_blank';
+  const innerContainer = document.createElement('div');
+  innerContainer.classList.add('inner-container');
+  innerContainer.append(...content);
+  link.appendChild(innerContainer);
+  cell.appendChild(link);
   return cell;
 };
 
-const insertImage = (item: HTMLDivElement, imageUrl?: string) => {
-  if (!imageUrl) return;
-  const image = document.createElement('img');
-  image.src = imageUrl;
-  item.appendChild(image);
-};
-
 const resetTopLists = () => {
-  (document.getElementById('top-lists-container') as HTMLDivElement).style.display = 'block';
   (document.getElementById('top-artists-grid-inner') as HTMLDivElement).innerHTML = '';
   (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).innerHTML = '';
 };
