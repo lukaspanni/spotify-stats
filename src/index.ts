@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import axios, { AxiosRequestConfig } from 'axios';
 import cookieParser from 'cookie-parser';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 // get environment variables
 const clientId: string = process.env.SPOTIFY_CLIENT_ID as string;
@@ -55,7 +56,6 @@ app.get('/login', (req, res) => {
 app.get('/spotify-callback', async (req, res) => {
   const code = req.query.code || null;
   const state = req.query.state || null;
-  console.log(req.cookies);
   const storedState = req.cookies ? req.cookies[stateKey] : null;
 
   if (state === null || state !== storedState) {
@@ -132,6 +132,20 @@ app.get('/refresh-token', async (req, res) => {
 
   res.redirect('/');
 });
+
+app.use(
+  '/proxy-api',
+  createProxyMiddleware('/proxy-api', {
+    target: baseUrl,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/proxy-api': ''
+    },
+    onProxyReq: (proxyReq, req, res) => {
+      proxyReq.setHeader('Authorization', req.headers.authorization ?? '');
+    }
+  })
+);
 
 app.listen(port);
 console.log('Listen on ', port);
