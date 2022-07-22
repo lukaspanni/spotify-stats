@@ -1,12 +1,14 @@
 export type Image = { url: string; height: number; width: number };
-export type Artist = { name: string; genres: string[]; id: string; popularity: number; images: Image[] };
-export type Track = {
+
+export type SpotifyTopListElement = {
   name: string;
-  artists: Artist[];
+  external_urls: { spotify: string };
   id: string;
   popularity: number;
-  album: { name: string; images: Image[] };
 };
+
+export type Artist = SpotifyTopListElement & { genres: string[]; images: Image[] };
+export type Track = SpotifyTopListElement & { artists: Artist[]; album: { name: string; images: Image[] } };
 
 export type TopArtistsResponse = { items: Artist[]; total: number };
 export type TopTracksResponse = { items: Track[]; total: number };
