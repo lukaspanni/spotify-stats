@@ -17,8 +17,7 @@ let accessToken: { token: string; expires: number; refreshToken: string } | null
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!checkAccessToken()) {
-    insertLoginButton();
-    hideTopLists();
+    activateNonAuthorizedView();
     return;
   }
 
@@ -55,33 +54,14 @@ const checkAccessToken = (): boolean => {
   return false;
 };
 
-const insertLoginButton = () => {
-  const loginButton = document.createElement('button');
-  loginButton.classList.add('mdc-button', 'mdc-button--raised');
-  loginButton.id = 'login-button';
+const activateNonAuthorizedView = () => {
+  const topListsContainer = document.getElementById('top-lists-container');
+  if (topListsContainer != null) topListsContainer.style.display = 'none';
 
-  const icon = document.createElement('i');
-  icon.classList.add('material-icons', 'mdc-button__icon');
-  icon.innerText = 'login';
-  loginButton.appendChild(icon);
-
-  const label = document.createElement('span');
-  label.innerText = 'Login';
-  label.className = 'mdc-button__label';
-  loginButton.appendChild(label);
-
-  const ripple = document.createElement('span');
-  ripple.className = 'mdc-button__ripple';
-  loginButton.appendChild(ripple);
-
-  new MDCRipple(loginButton);
-  loginButton.addEventListener('click', () => (document.location.href = '/login'));
-  document.getElementsByTagName('body')[0].appendChild(loginButton);
-};
-
-const hideTopLists = () => {
-  const container = document.getElementById('top-lists-container');
-  if (container != null) container.style.display = 'none';
+  const authorizeContainer = document.getElementById('authorize-container');
+  if (authorizeContainer != null) {
+    authorizeContainer.style.display = 'block';
+  }
 };
 
 const initMaterialComponents = (): void => {
@@ -158,6 +138,7 @@ const insertImage = (item: HTMLDivElement, imageUrl?: string) => {
 };
 
 const resetTopLists = () => {
+  (document.getElementById('top-lists-container') as HTMLDivElement).style.display = 'block';
   (document.getElementById('top-artists-grid-inner') as HTMLDivElement).innerHTML = '';
   (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).innerHTML = '';
 };

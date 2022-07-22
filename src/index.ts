@@ -37,6 +37,7 @@ app
   .use(cookieParser());
 
 app.get('/login', (req, res) => {
+  console.info(new Date(), '/login', req.ips, req.headers['user-agent']);
   const state = randomBytes(16).toString('hex');
   res.cookie(stateKey, state, { secure: false });
 
@@ -95,6 +96,7 @@ app.get('/spotify-callback', async (req, res) => {
 });
 
 app.get('/refresh-token', async (req, res) => {
+  console.info(new Date(), '/refresh-token', req.ips, req.headers['user-agent']);
   let accessToken: AccessToken | null = null;
   try {
     accessToken = JSON.parse(req.cookies.accessToken);
