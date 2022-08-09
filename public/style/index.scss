@@ -20,6 +20,10 @@ body {
   padding: 16px;
 }
 
+.hidden {
+  display: none;
+}
+
 #login-button {
   @include button.container-fill-color(#a1c349);
   @include button.ink-color(#000);
@@ -88,6 +92,11 @@ body {
       opacity: 0.6;
     }
   }
+}
+
+.error-message {
+  @extend .mdc-typography--subtitle1;
+  opacity: 0.6;
 }
 
 footer {

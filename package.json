@@ -48,7 +48,7 @@
   },
   "scripts": {
     "lint": "npx eslint . --ext .ts",
-    "format": "npx prettier --config .prettierrc src/**/*.ts --write",
+    "format": "npx prettier --config .prettierrc **/*.{ts,js,html,scss,css} --write",
     "build": "tsc && npm run build-frontend",
     "build-frontend": "webpack",
     "serve": "node dist/index.js",

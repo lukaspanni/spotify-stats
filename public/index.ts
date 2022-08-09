@@ -1,5 +1,4 @@
 import { MDCSelect } from '@material/select';
-import { MDCRipple } from '@material/ripple';
 import { Artist, SpotifyTopListElement, TimeRange, TopListsClient, Track } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 
@@ -147,8 +146,8 @@ const createCell = (topListElement: SpotifyTopListElement, ...content: HTMLEleme
 };
 
 const resetTopLists = () => {
-  (document.getElementById('top-artists-grid-inner') as HTMLDivElement).innerHTML = '';
-  (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).innerHTML = '';
+  document.querySelectorAll('.grid-content').forEach((e) => (e.innerHTML = ''));
+  document.querySelectorAll('.error-message').forEach((e) => e.classList.add('hidden'));
 };
 
 const fetchAll = async () => {
@@ -157,12 +156,30 @@ const fetchAll = async () => {
 
 const fetchTopArtists = async () => {
   const topArtists = await topListsClient.getTopArtists(timeRange as TimeRange, artistLimit, artistOffset);
-  if (topArtists == null) return;
+  if (topArtists == null || topArtists.total == 0) {
+    showTopArtistsErrorMessage();
+    return;
+  }
   topArtists.items.forEach((artist, index) => addArtistCell(++index, artist));
 };
 
 const fetchTopTracks = async () => {
   const topTracks = await topListsClient.getTopTracks(timeRange as TimeRange, trackLimit, trackOffset);
-  if (topTracks == null) return;
+  if (topTracks == null || topTracks.total == 0) {
+    showTopTracksErrorMessage();
+    return;
+  }
   topTracks.items.forEach((track, index) => addTrackCell(++index, track));
+};
+
+const showTopArtistsErrorMessage = () => {
+  const element = document.querySelector('#top-artists-grid .error-message');
+  if (element == null) return;
+  element.classList.remove('hidden');
+};
+
+const showTopTracksErrorMessage = () => {
+  const element = document.querySelector('#top-tracks-grid .error-message');
+  if (element == null) return;
+  element.classList.remove('hidden');
 };
