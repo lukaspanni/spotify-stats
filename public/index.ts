@@ -1,5 +1,6 @@
 import { MDCSelect } from '@material/select';
-import { Artist, SpotifyTopListElement, TimeRange, TopListsClient, Track } from './top-lists-client';
+import { SpotifyEntity, Artist, Track } from './spotify-types';
+import { TimeRange, TopListsClient } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 
 let topListsClient: TopListsClient;
@@ -125,7 +126,7 @@ const addTrackCell = (index: number, track: Track): void => {
   (document.getElementById('top-tracks-grid-inner') as HTMLDivElement).appendChild(trackItem);
 };
 
-const createCell = (topListElement: SpotifyTopListElement, ...content: HTMLElement[]): HTMLDivElement => {
+const createCell = (topListElement: SpotifyEntity, ...content: HTMLElement[]): HTMLDivElement => {
   const cell = document.createElement('div');
   cell.classList.add(
     'cell',
