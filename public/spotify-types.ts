@@ -8,7 +8,7 @@ export type SpotifyEntity = {
 };
 
 export type Image = { url: string; height: number; width: number };
-
+export type User = { id: string; display_name: string; email: string; images: Image[] };
 export type Artist = SpotifyEntity & { genres: string[]; images: Image[] };
 export type Track = SpotifyEntity & { artists: Artist[]; album: { name: string; images: Image[] } };
 export type Playlist = SpotifyEntity & { tracks: Track[]; images: Image[] };

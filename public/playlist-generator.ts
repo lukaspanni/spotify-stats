@@ -1,6 +1,6 @@
-import { Playlist, SpotifyURI, Track } from './spotify-types';
+import { Playlist, SpotifyURI, Track, User } from './spotify-types';
 
 export interface PlaylistGenerator {
-  createPlaylist(playlistName: string, description: string, isPrivate: boolean): Promise<Playlist>;
+  createPlaylist(user: User, playlistName: string, description: string, isPrivate: boolean): Promise<Playlist>;
   addTracksToPlaylist(playlist: Playlist, tracks: Track[] | SpotifyURI[]): Promise<Playlist>;
 }
