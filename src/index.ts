@@ -40,6 +40,7 @@ app
 app.get('/login', (req, res) => {
   console.info(new Date(), '/login', req.ip, req.headers['user-agent']);
   const state = randomBytes(16).toString('hex');
+  // console.debug('setting state', state);
   res.cookie(stateKey, state, { secure: false });
 
   const authQueryParams = new URLSearchParams({
@@ -57,10 +58,11 @@ app.get('/spotify-callback', async (req, res) => {
   const code = req.query.code || null;
   const state = req.query.state || null;
   const storedState = req.cookies ? req.cookies[stateKey] : null;
+  // console.debug('state from cookie', storedState);
 
   if (state === null || state !== storedState) {
     //state did not match
-    res.send('Error');
+    res.send('Error, state did not match');
   } else {
     res.clearCookie(stateKey);
 
