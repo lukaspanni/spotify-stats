@@ -54,6 +54,7 @@
     "serve": "node dist/index.js",
     "start": "npm run serve",
     "build-container": "docker build -t top-lists .",
-    "start-container": "docker run --env-file .env -d -p 8080:8080 top-lists"
+    "start-container": "docker run --env-file .env -d -p 8080:8080 top-lists",
+    "postversion": "git push && git push --tags"
   }
 }
