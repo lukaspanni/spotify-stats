@@ -1,4 +1,4 @@
-FROM node:16 as builder
+FROM node:lts-slim as builder
 
 WORKDIR /build
 
@@ -6,7 +6,7 @@ COPY . .
 RUN npm ci
 RUN npm run build
 
-FROM node:16 as server
+FROM node:lts-slim as server
 
 COPY --from=builder /build/package*.json .
 RUN npm ci --only=production
