@@ -2,15 +2,14 @@ import { MDCSelect } from '@material/select';
 import { SpotifyEntity, Artist, Track } from './spotify-types';
 import { TimeRange, TopListsClient } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
+import { PaginationData } from './pagination-data';
 
 let topListsClient: TopListsClient;
 const allowedTimeRanges: string[] = ['long_term', 'medium_term', 'short_term'];
 let timeRange: TimeRange = 'long_term';
 
-let artistLimit = 10;
-let artistOffset = 0;
-let trackLimit = 10;
-let trackOffset = 0;
+const artistsPaginationData = new PaginationData(0, 10, 0);
+const tracksPaginationData = new PaginationData(0, 10, 0);
 
 //TODO extract common types
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
@@ -39,6 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 const checkAccessToken = (): boolean => {
   const accessTokenCookie = document.cookie
     .split(';')
+    .map((c) => c.trim())
     .find((c) => c.startsWith('accessToken='))
     ?.split('=')[1];
   if (!accessTokenCookie) return false;
@@ -64,6 +64,29 @@ const initializeView = (authorized: boolean) => {
   if (authorizeContainer != null) {
     authorizeContainer.style.display = authorized ? 'none' : 'block';
   }
+
+  //TODO: refactor out
+  const loadMoreTracksButton = document.getElementById('load-more-tracks');
+  const loadMoreArtistsButton = document.getElementById('load-more-artists');
+  if (loadMoreTracksButton == null || loadMoreArtistsButton == null) return;
+  tracksPaginationData.registerChangedHandler('load-more-button', (value) => {
+    loadMoreTracksButton.style.display = value.remainingElements > 0 ? 'block' : 'none';
+  });
+  artistsPaginationData.registerChangedHandler('load-more-button', (value) => {
+    loadMoreArtistsButton.style.display = value.remainingElements > 0 ? 'block' : 'none';
+  });
+
+  loadMoreTracksButton.addEventListener('click', () => {
+    console.log(`load ${tracksPaginationData.currentLimit} more tracks`);
+    tracksPaginationData.currentOffset += tracksPaginationData.currentLimit;
+    fetchTopTracks();
+  });
+
+  loadMoreArtistsButton.addEventListener('click', () => {
+    console.log(`load ${artistsPaginationData} more artists`);
+    artistsPaginationData.currentOffset += artistsPaginationData.currentLimit;
+    fetchTopArtists();
+  });
 };
 
 const initMaterialComponents = (): void => {
@@ -156,21 +179,31 @@ const fetchAll = async () => {
 };
 
 const fetchTopArtists = async () => {
-  const topArtists = await topListsClient.getTopArtists(timeRange as TimeRange, artistLimit, artistOffset);
+  const topArtists = await topListsClient.getTopArtists(
+    timeRange as TimeRange,
+    artistsPaginationData.currentLimit,
+    artistsPaginationData.currentOffset
+  );
   if (topArtists == null || topArtists.total == 0) {
     showTopArtistsErrorMessage();
     return;
   }
-  topArtists.items.forEach((artist, index) => addArtistCell(++index, artist));
+  artistsPaginationData.total = topArtists.total;
+  topArtists.items.forEach((artist, index) => addArtistCell(++index + artistsPaginationData.currentOffset, artist));
 };
 
 const fetchTopTracks = async () => {
-  const topTracks = await topListsClient.getTopTracks(timeRange as TimeRange, trackLimit, trackOffset);
+  const topTracks = await topListsClient.getTopTracks(
+    timeRange as TimeRange,
+    tracksPaginationData.currentLimit,
+    tracksPaginationData.currentOffset
+  );
   if (topTracks == null || topTracks.total == 0) {
     showTopTracksErrorMessage();
     return;
   }
-  topTracks.items.forEach((track, index) => addTrackCell(++index, track));
+  tracksPaginationData.total = topTracks.total;
+  topTracks.items.forEach((track, index) => addTrackCell(++index + tracksPaginationData.currentOffset, track));
 };
 
 const showTopArtistsErrorMessage = () => {
