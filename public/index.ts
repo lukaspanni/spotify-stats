@@ -7,8 +7,10 @@ let topListsClient: TopListsClient;
 const allowedTimeRanges: string[] = ['long_term', 'medium_term', 'short_term'];
 let timeRange: TimeRange = 'long_term';
 
-const artistsPaginationData = new PaginationData(0, 10, 0);
-const tracksPaginationData = new PaginationData(0, 10, 0);
+const defaultLimit = 10;
+
+const artistsPaginationData = new PaginationData(0, defaultLimit, 0);
+const tracksPaginationData = new PaginationData(0, defaultLimit, 0);
 
 //TODO extract common types
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
@@ -169,6 +171,8 @@ const createCell = (topListElement: SpotifyTopListElement, ...content: HTMLEleme
 };
 
 const resetTopLists = () => {
+  artistsPaginationData.reset(0, defaultLimit, 0);
+  tracksPaginationData.reset(0, defaultLimit, 0);
   document.querySelectorAll('.grid-content').forEach((e) => (e.innerHTML = ''));
   document.querySelectorAll('.error-message').forEach((e) => e.classList.add('hidden'));
 };
