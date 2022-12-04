@@ -44,6 +44,12 @@ export class PaginationData {
     this._currentOffset = currentOffset;
   }
 
+  public reset(total: number, currentLimit: number, currentOffset: number) {
+    this._total = total;
+    this._currentLimit = currentLimit;
+    this._currentOffset = currentOffset;
+  }
+
   public registerChangedHandler(key: string, handler: (value: PaginationData) => void) {
     this.handlers.set(key, handler);
   }
