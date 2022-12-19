@@ -75,11 +75,18 @@ app.get('/spotify-callback', async (req, res) => {
     //get token
     try {
       const response = await axios.request(options);
+      console.info(new Date(), '/spotify-callback token request status: ', response.status);
       if (response.status !== 200) {
         redirectInvalidToken(res);
         return;
       }
       const responseData = response.data as TokenResponse;
+      //CAUTION: do not log access tokens! only availability status to debug api issues
+      console.info(
+        `got responseData, {accessTokenAvailable: ${responseData.access_token != null}, expires: ${
+          responseData.expires_in
+        }, refreshTokenAvailable: ${responseData.refresh_token != null}}`
+      );
       accessToken = {
         token: responseData.access_token,
         expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
