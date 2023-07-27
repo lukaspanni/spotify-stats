@@ -79,13 +79,13 @@ const initializeView = (authorized: boolean) => {
 
   loadMoreTracksButton.addEventListener('click', () => {
     console.log(`load ${tracksPaginationData.currentLimit} more tracks`);
-    tracksPaginationData.currentOffset += tracksPaginationData.currentLimit;
+    tracksPaginationData.updateOffset();
     fetchTopTracks();
   });
 
   loadMoreArtistsButton.addEventListener('click', () => {
     console.log(`load ${artistsPaginationData} more artists`);
-    artistsPaginationData.currentOffset += artistsPaginationData.currentLimit;
+    artistsPaginationData.updateOffset();
     fetchTopArtists();
   });
 };
