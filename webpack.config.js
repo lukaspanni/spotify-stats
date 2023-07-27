@@ -6,6 +6,7 @@ module.exports = [
   {
     mode: 'production',
     entry: ['./public/style/index.scss', './public/index.ts'],
+    devtool: 'source-map',
     output: {
       filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist/public')

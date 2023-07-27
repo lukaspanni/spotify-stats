@@ -28,20 +28,21 @@ export class PaginationData {
     return this._currentOffset;
   }
 
-  public set currentOffset(value: number) {
-    if (value < 0 || this._currentOffset == value) return;
-    this._currentOffset = Math.max(0, Math.min(value, this._total - this._currentLimit));
-    this.onChanged();
-  }
-
   public get remainingElements(): number {
-    return this._total - this._currentOffset - this._currentLimit;
+    return Math.min(this._total - this._currentOffset - this._currentLimit);
   }
 
   constructor(total: number, currentLimit: number, currentOffset: number) {
     this._total = total;
     this._currentLimit = currentLimit;
     this._currentOffset = currentOffset;
+  }
+
+  public updateOffset() {
+    if (this.remainingElements > 0) {
+      this._currentOffset += this._currentLimit;
+      this.onChanged();
+    }
   }
 
   public reset(total: number, currentLimit: number, currentOffset: number) {
