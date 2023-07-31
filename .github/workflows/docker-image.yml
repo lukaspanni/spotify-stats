@@ -67,4 +67,4 @@ jobs:
         env: 
           GH_TOKEN: ${{ secrets.CD_TOKEN }}
         run: |
-          gh api repos/lukaspanni/infrastructure/dispatches --raw-field event_type=${{ github.event.repository.name }}
+           gh api repos/lukaspanni/infrastructure/dispatches --input - <<< '{"event_type": "${{ github.event.repository.name }}", "client_payload": { "kubernetes-config": "top-lists.yml", "image-name": "ghcr.io/lukaspanni/spotify-stats", "image-sha": "${{ github.sha }}" }'
