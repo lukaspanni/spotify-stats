@@ -1,0 +1,14 @@
+{
+  "title": "Top-Lists",
+  "heading-unauthorized": "Deine Top-Titel und Künstler auf Spotify!",
+  "subheading-unauthorized": "Autorisiere deinen Spotify-Account, um deine Top-Titel und Künstler zu sehen.",
+  "authorize-button": "Autorisieren",
+  "time-span-selection": "Zeitspanne",
+  "time-range-long-term": "Gesamte Zeit",
+  "time-range-medium-term": "Letzte 6 Monate",
+  "time-range-short-term": "Letzte 4 Wochen",
+  "no-data-found-message": "Hoppla... keine Daten gefunden!",
+  "load-more-button": "Mehr Laden",
+  "top-tracks-header": "Top-Titel",
+  "top-artists-header": "Top-Künstler"
+}
