@@ -4,23 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="index.css" rel="stylesheet" />
-    <title>Top Lists</title>
+    <title data-translation-key="title">Top Lists</title>
   </head>
 
   <body>
     <div id="authorize-container" class="main-content">
-      <h1 class="mdc-typography--headline2">Your top tracks and artists on Spotify!</h1>
-      <h3 class="mdc-typography--headline4">Authorize your Spotify account to see your top tracks and artists.</h3>
+      <h1 class="mdc-typography--headline2" data-translation-key="heading-unauthorized">Your top tracks and artists on Spotify!</h1>
+      <h3 class="mdc-typography--headline4" data-translation-key="subheading-unauthorized">Authorize your Spotify account to see your top tracks and artists.</h3>
 
       <button class="mdc-button mdc-button--raised mdc-ripple-upgraded" id="login-button">
-        <a href="/login"> <span class="mdc-button__label">Authorize</span><span class="mdc-button__ripple"></span> </a>
+        <a href="/login"> <span class="mdc-button__label" data-translation-key="authorize-button">Authorize</span><span class="mdc-button__ripple"></span> </a>
       </button>
     </div>
 
     <div id="top-lists-container" style="display: none" class="main-content">
       <div id="time-range-select" class="mdc-select mdc-select--outlined">
         <div class="mdc-select__anchor" role="button">
-          <span id="demo-label" class="mdc-floating-label">Time Span</span>
+          <span id="demo-label" class="mdc-floating-label" data-translation-key="time-span-selection">Time Span</span>
           <span class="mdc-select__selected-text-container">
             <span id="demo-selected-text" class="mdc-select__selected-text"></span>
           </span>
@@ -47,40 +47,40 @@
           <ul class="mdc-list" role="listbox" aria-label="Time-Span select">
             <li class="mdc-list-item" data-value="long_term" role="option">
               <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">All-time</span>
+              <span class="mdc-list-item__text" data-translation-key="time-range-long-term">All Time</span>
             </li>
             <li class="mdc-list-item" data-value="medium_term" role="option">
               <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Last half year (approx.)</span>
+              <span class="mdc-list-item__text" data-translation-key="time-range-medium-term">Last 6 Months</span>
             </li>
             <li class="mdc-list-item" data-value="short_term" role="option">
               <span class="mdc-list-item__ripple"></span>
-              <span class="mdc-list-item__text">Last four weeks (approx.)</span>
+              <span class="mdc-list-item__text" data-translation-key="time-range-short-term">Last 4 Weeks</span>
             </li>
           </ul>
         </div>
       </div>
 
-      <h2 id="top-tracks-header" class="mdc-typography--headline4">
+      <h2 id="top-tracks-header" class="mdc-typography--headline4" data-translation-key="top-tracks-header">
         Top Tracks <span class="time-range-string"></span>
       </h2>
       <div id="top-tracks-grid" class="mdc-layout-grid">
-        <span class="error-message hidden">Oops... no data found!</span>
+        <span class="error-message hidden" data-translation-key="no-data-found-message">Oops... no data found!</span>
         <div class="mdc-layout-grid__inner grid-content" id="top-tracks-grid-inner"></div>
         <button id="load-more-tracks" class="mdc-button mdc-button--outlined mdc-ripple-upgraded load-more-button">
-          <span class="mdc-button__label">Load More</span>
+          <span class="mdc-button__label" data-translation-key="load-more-button">Load More</span>
           <span class="mdc-button__ripple"></span>
         </button>
       </div>
 
-      <h2 id="top-artists-header" class="mdc-typography--headline4">
+      <h2 id="top-artists-header" class="mdc-typography--headline4" data-translation-key="top-artists-header">
         Top Artists <span class="time-range-string"></span>
       </h2>
       <div id="top-artists-grid" class="mdc-layout-grid">
-        <span class="error-message hidden">Oops... no data found!</span>
+        <span class="error-message hidden" data-translation-key="no-data-found-message">Oops... no data found!</span>
         <div class="mdc-layout-grid__inner grid-content" id="top-artists-grid-inner"></div>
         <button id="load-more-artists" class="mdc-button mdc-button--outlined mdc-ripple-upgraded load-more-button">
-          <span class="mdc-button__label">Load More</span>
+          <span class="mdc-button__label" data-translation-key="load-more-button">Load More</span>
           <span class="mdc-button__ripple"></span>
         </button>
       </div>

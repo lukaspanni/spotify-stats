@@ -2,10 +2,11 @@ import { MDCSelect } from '@material/select';
 import { Artist, SpotifyTopListElement, TimeRange, TopListsClient, Track } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { PaginationData } from './pagination-data';
+import { TranslationMapper, TranslationMapperError } from './translation-mapper';
 
 let topListsClient: TopListsClient;
 const allowedTimeRanges: string[] = ['long_term', 'medium_term', 'short_term'];
-let timeRange: TimeRange = 'long_term';
+let timeRange: TimeRange = 'short_term';
 
 const defaultLimit = 10;
 
@@ -15,7 +16,15 @@ const tracksPaginationData = new PaginationData(0, defaultLimit, 0);
 //TODO extract common types
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
 
+let translationMapper: TranslationMapper;
+
 document.addEventListener('DOMContentLoaded', async () => {
+  translationMapper = new TranslationMapper(TranslationMapper.detectLanguage());
+  translationMapper.initializedPromise.then(() => {
+    initializeTranslations();
+    initMaterialComponents();
+  });
+
   if (!checkAccessToken()) {
     initializeView(false);
     return;
@@ -31,7 +40,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   getTimeRange();
-  initMaterialComponents();
   resetTopLists();
   await fetchAll();
 });
@@ -55,6 +63,20 @@ const checkAccessToken = (): boolean => {
   }
 
   return false;
+};
+
+const initializeTranslations = () => {
+  const translatableElements = Array.from(document.querySelectorAll('[data-translation-key]'));
+  for (const element of translatableElements) {
+    const key = element.getAttribute('data-translation-key') ?? '';
+    try {
+      element.textContent = translationMapper.get(key);
+    } catch (e) {
+      if (e instanceof TranslationMapperError) {
+        console.warn(e.message); // TODO: retry later
+      }
+    }
+  }
 };
 
 const initializeView = (authorized: boolean) => {
@@ -102,13 +124,22 @@ const getTimeRange = () => {
   const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
   if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange as TimeRange;
 
-  const timeRangeString = timeRange
-    .split('_')
-    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-    .join(' ');
-  (document.querySelectorAll('span.time-range-string') as NodeListOf<HTMLSpanElement>).forEach(
-    (timeRangeElement) => (timeRangeElement.textContent = timeRangeString)
-  );
+  translationMapper.initializedPromise.then(() => {
+    let timeRangeString: string;
+    try {
+      timeRangeString = translationMapper.get('time-range-' + timeRange.replace('_', '-'));
+    } catch (e) {
+      if (e instanceof TranslationMapperError) {
+        timeRangeString = timeRange
+          .split('_')
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(' ');
+      }
+    }
+    (document.querySelectorAll('span.time-range-string') as NodeListOf<HTMLSpanElement>).forEach(
+      (timeRangeElement) => (timeRangeElement.textContent = timeRangeString)
+    );
+  });
 };
 
 const selectedTimeRangeChanged = async (newTimeRange: string) => {
