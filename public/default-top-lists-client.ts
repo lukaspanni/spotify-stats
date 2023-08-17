@@ -11,9 +11,8 @@ export class DefaultTopListsClient implements TopListsClient {
   private accessToken: string;
 
   constructor(accessToken?: string) {
-    if (accessToken == null || accessToken == '') {
-      throw new Error('accessToken is null or empty');
-    }
+    if (accessToken == null || accessToken === '') throw new Error('accessToken is null or empty');
+
     this.accessToken = accessToken;
   }
 
@@ -48,7 +47,7 @@ export class DefaultTopListsClient implements TopListsClient {
     });
   }
 
-  private switchToProxyFallback() {
+  private switchToProxyFallback(): void {
     if (this.proxyActive) return;
     this.topArtistsUrl = DefaultTopListsClient.proxyBaseUrl + 'artists';
     this.topTracksUrl = DefaultTopListsClient.proxyBaseUrl + 'tracks';

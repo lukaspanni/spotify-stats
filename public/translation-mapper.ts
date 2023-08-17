@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-ignore
 import en from './assets/strings.en.json';
 // @ts-ignore
 import de from './assets/strings.de.json';
+/* eslint-enable @typescript-eslint/ban-ts-comment */
 
 const SUPPORTED_LANGUAGES: Map<string, URL> = new Map([
   ['en', en],
@@ -22,15 +24,14 @@ export class TranslationMapper {
   }
 
   constructor(language: string) {
-    let languageFileUrl = SUPPORTED_LANGUAGES.get(language) ?? DEFAULT_LANGUAGE;
+    const languageFileUrl = SUPPORTED_LANGUAGES.get(language) ?? DEFAULT_LANGUAGE;
     fetch(languageFileUrl).then((response) => {
-      if (response.ok) {
+      if (response.ok)
         response.json().then((json) => {
           this._strings = json;
           this.initialized = true;
           this._initializedResolve();
         });
-      }
     });
   }
 
@@ -40,7 +41,7 @@ export class TranslationMapper {
   }
 
   public get(key: string): string {
-    let translation = this.strings[key];
+    const translation = this.strings[key];
     if (translation === undefined) throw new TranslationMapperError(`Translation for key ${key} not found`);
     return translation;
   }

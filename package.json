@@ -51,7 +51,8 @@
     "material-components-web": "^14.0.0"
   },
   "scripts": {
-    "lint": "npx eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --fix",
+    "test": "jest --ci",
     "format": "npx prettier --config .prettierrc **/*.{ts,js,html,scss,css} --write",
     "build": "npm run build:backend && npm run build:frontend",
     "build:frontend": "webpack",
