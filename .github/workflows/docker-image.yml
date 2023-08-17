@@ -3,14 +3,47 @@ name: Docker Image CI
 on:
   workflow_dispatch:
   push:
-    tags:
-      - '*'
-    branches:
-      - main
+    branches: [main, feature/*]
+  pull_request:
+    branches: [main]
 
 jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: npm run test
+
+  bump-version:
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - run: npm run lint
+      - name: 'Automated Version Bump'
+        uses: 'phips28/gh-action-bump-version@master'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          patch-wording: 'patch,fixes,Bump'
+          tag-prefix: 'v'
+
+
   build-docker:
     runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/heads/main') || github.event_name == 'workflow_dispatch'  }}
+    needs: [bump-version, lint-test]
 
     steps:
       - uses: actions/checkout@v3
@@ -64,7 +97,7 @@ jobs:
     
     steps:
       - name: Trigger Deployment
-        env: 
+        env:
           GH_TOKEN: ${{ secrets.CD_TOKEN }}
         run: |
-           gh api repos/lukaspanni/infrastructure/dispatches --input - <<< '{"event_type": "${{ github.event.repository.name }}", "client_payload": { "kubernetes-config": "top-lists.yml", "image-name": "ghcr.io/lukaspanni/spotify-stats", "image-sha": "${{ github.sha }}" }'
+          gh api repos/lukaspanni/infrastructure/dispatches --input - <<< '{"event_type": "${{ github.event.repository.name }}", "client_payload": { "kubernetes-config": "top-lists.yml", "image-name": "ghcr.io/lukaspanni/spotify-stats", "image-sha": "${{ github.sha }}" }'

@@ -9,7 +9,7 @@ export class PaginationData {
   }
 
   public set total(value: number) {
-    if (value < 0 || this._total == value) return;
+    if (value < 0 || this._total === value) return;
     this._total = value;
     this.onChanged();
   }
@@ -19,7 +19,7 @@ export class PaginationData {
   }
 
   public set currentLimit(value: number) {
-    if (value < 0 || this._currentLimit == value) return;
+    if (value < 0 || this._currentLimit === value) return;
     this._currentLimit = Math.min(value, this._total);
     this.onChanged();
   }
@@ -38,28 +38,28 @@ export class PaginationData {
     this._currentOffset = currentOffset;
   }
 
-  public updateOffset() {
+  public updateOffset(): void {
     if (this.remainingElements > 0) {
       this._currentOffset += this._currentLimit;
       this.onChanged();
     }
   }
 
-  public reset(total: number, currentLimit: number, currentOffset: number) {
+  public reset(total: number, currentLimit: number, currentOffset: number): void {
     this._total = total;
     this._currentLimit = currentLimit;
     this._currentOffset = currentOffset;
   }
 
-  public registerChangedHandler(key: string, handler: (value: PaginationData) => void) {
+  public registerChangedHandler(key: string, handler: (value: PaginationData) => void): void {
     this.handlers.set(key, handler);
   }
 
-  public unregisterChangedHandler(key: string) {
+  public unregisterChangedHandler(key: string): void {
     this.handlers.delete(key);
   }
 
-  private onChanged() {
+  private onChanged(): void {
     this.handlers.forEach((handler) => handler(this));
   }
 }

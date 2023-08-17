@@ -1,6 +1,6 @@
 {
   "name": "spotify-stats",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "",
   "main": "dist/index.js",
   "repository": {
@@ -51,7 +51,8 @@
     "material-components-web": "^14.0.0"
   },
   "scripts": {
-    "lint": "npx eslint . --ext .ts",
+    "lint": "eslint . --ext .ts --fix",
+    "test": "jest --ci",
     "format": "npx prettier --config .prettierrc **/*.{ts,js,html,scss,css} --write",
     "build": "npm run build:backend && npm run build:frontend",
     "build:frontend": "webpack",
@@ -61,7 +62,6 @@
     "serve": "node dist/index.js",
     "start": "npm run serve",
     "build-container": "docker build -t top-lists .",
-    "start-container": "docker run --env-file .env -d -p 8080:8080 top-lists",
-    "postversion": "git push && git push --tags"
+    "start-container": "docker run --env-file .env -d -p 8080:8080 top-lists"
   }
 }

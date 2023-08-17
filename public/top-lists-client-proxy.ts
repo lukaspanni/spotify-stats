@@ -3,7 +3,7 @@ import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse } from
 
 export class TopListsClientProxy implements TopListsClient {
   private client: DefaultTopListsClient;
-  private cache: { [key: string]: TopArtistsResponse | TopTracksResponse } = {};
+  private cache: Map<string, TopArtistsResponse | TopTracksResponse> = new Map();
 
   constructor(accessToken?: string) {
     this.client = new DefaultTopListsClient(accessToken);
@@ -15,9 +15,9 @@ export class TopListsClientProxy implements TopListsClient {
     offset?: number | undefined
   ): Promise<TopArtistsResponse> {
     const cacheKey = `artists-${timeRange}-${limit}-${offset}`;
-    if (this.cache.hasOwnProperty(cacheKey)) return Promise.resolve(this.cache[cacheKey] as TopArtistsResponse);
+    if (this.cache.has(cacheKey)) return Promise.resolve(this.cache.get(cacheKey) as TopArtistsResponse);
     const result = await this.client.getTopArtists(timeRange, limit, offset);
-    this.cache[cacheKey] = result;
+    this.cache.set(cacheKey, result);
     return result;
   }
 
@@ -27,9 +27,9 @@ export class TopListsClientProxy implements TopListsClient {
     offset?: number | undefined
   ): Promise<TopTracksResponse> {
     const cacheKey = `tracks-${timeRange}-${limit}-${offset}`;
-    if (this.cache.hasOwnProperty(cacheKey)) return Promise.resolve(this.cache[cacheKey] as TopTracksResponse);
+    if (this.cache.has(cacheKey)) return Promise.resolve(this.cache.get(cacheKey) as TopTracksResponse);
     const result = await this.client.getTopTracks(timeRange, limit, offset);
-    this.cache[cacheKey] = result;
+    this.cache.set(cacheKey, result);
     return result;
   }
 }

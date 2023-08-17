@@ -28,9 +28,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!checkAccessToken()) {
     initializeView(false);
     return;
-  } else {
-    initializeView(true);
-  }
+  } else initializeView(true);
 
   try {
     topListsClient = new TopListsClientFactory().getTopListsClient(accessToken?.token);
@@ -65,28 +63,24 @@ const checkAccessToken = (): boolean => {
   return false;
 };
 
-const initializeTranslations = () => {
+const initializeTranslations = (): void => {
   const translatableElements = Array.from(document.querySelectorAll('[data-translation-key]'));
   for (const element of translatableElements) {
     const key = element.getAttribute('data-translation-key') ?? '';
     try {
       element.textContent = translationMapper.get(key);
     } catch (e) {
-      if (e instanceof TranslationMapperError) {
-        console.warn(e.message); // TODO: retry later
-      }
+      if (e instanceof TranslationMapperError) console.warn(e.message); // TODO: retry later
     }
   }
 };
 
-const initializeView = (authorized: boolean) => {
+const initializeView = (authorized: boolean): void => {
   const topListsContainer = document.getElementById('top-lists-container');
   if (topListsContainer != null) topListsContainer.style.display = authorized ? 'block' : 'none';
 
   const authorizeContainer = document.getElementById('authorize-container');
-  if (authorizeContainer != null) {
-    authorizeContainer.style.display = authorized ? 'none' : 'block';
-  }
+  if (authorizeContainer != null) authorizeContainer.style.display = authorized ? 'none' : 'block';
 
   //TODO: refactor out
   const loadMoreTracksButton = document.getElementById('load-more-tracks');
@@ -120,7 +114,7 @@ const initMaterialComponents = (): void => {
   select.listen('MDCSelect:change', () => selectedTimeRangeChanged(select.value));
 };
 
-const getTimeRange = () => {
+const getTimeRange = (): void => {
   const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
   if (queryTimeRange && allowedTimeRanges.includes(queryTimeRange)) timeRange = queryTimeRange as TimeRange;
 
@@ -129,12 +123,11 @@ const getTimeRange = () => {
     try {
       timeRangeString = translationMapper.get('time-range-' + timeRange.replace('_', '-'));
     } catch (e) {
-      if (e instanceof TranslationMapperError) {
+      if (e instanceof TranslationMapperError)
         timeRangeString = timeRange
           .split('_')
           .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
           .join(' ');
-      }
     }
     (document.querySelectorAll('span.time-range-string') as NodeListOf<HTMLSpanElement>).forEach(
       (timeRangeElement) => (timeRangeElement.textContent = timeRangeString)
@@ -142,7 +135,7 @@ const getTimeRange = () => {
   });
 };
 
-const selectedTimeRangeChanged = async (newTimeRange: string) => {
+const selectedTimeRangeChanged = async (newTimeRange: string): Promise<void> => {
   if (allowedTimeRanges.includes(newTimeRange)) {
     timeRange = newTimeRange as TimeRange;
     history.pushState(null, timeRange, window.location.href.split('?')[0] + '?time_range=' + timeRange);
@@ -153,7 +146,7 @@ const selectedTimeRangeChanged = async (newTimeRange: string) => {
 };
 
 const addArtistCell = (index: number, artist: Artist): void => {
-  // use smallest image at least 300x300px, default order is widest first
+  // use the smallest image at least 300x300px, default order is widest first
   const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
   if (!imageUrl) return;
   const image = document.createElement('img');
@@ -201,24 +194,24 @@ const createCell = (topListElement: SpotifyTopListElement, ...content: HTMLEleme
   return cell;
 };
 
-const resetTopLists = () => {
+const resetTopLists = (): void => {
   artistsPaginationData.reset(0, defaultLimit, 0);
   tracksPaginationData.reset(0, defaultLimit, 0);
   document.querySelectorAll('.grid-content').forEach((e) => (e.innerHTML = ''));
   document.querySelectorAll('.error-message').forEach((e) => e.classList.add('hidden'));
 };
 
-const fetchAll = async () => {
+const fetchAll = async (): Promise<any> => {
   return Promise.all([fetchTopArtists(), fetchTopTracks()]);
 };
 
-const fetchTopArtists = async () => {
+const fetchTopArtists = async (): Promise<void> => {
   const topArtists = await topListsClient.getTopArtists(
     timeRange as TimeRange,
     artistsPaginationData.currentLimit,
     artistsPaginationData.currentOffset
   );
-  if (topArtists == null || topArtists.total == 0) {
+  if (topArtists == null || topArtists.total === 0) {
     showTopArtistsErrorMessage();
     return;
   }
@@ -226,13 +219,13 @@ const fetchTopArtists = async () => {
   topArtists.items.forEach((artist, index) => addArtistCell(++index + artistsPaginationData.currentOffset, artist));
 };
 
-const fetchTopTracks = async () => {
+const fetchTopTracks = async (): Promise<void> => {
   const topTracks = await topListsClient.getTopTracks(
     timeRange as TimeRange,
     tracksPaginationData.currentLimit,
     tracksPaginationData.currentOffset
   );
-  if (topTracks == null || topTracks.total == 0) {
+  if (topTracks == null || topTracks.total === 0) {
     showTopTracksErrorMessage();
     return;
   }
@@ -240,13 +233,13 @@ const fetchTopTracks = async () => {
   topTracks.items.forEach((track, index) => addTrackCell(++index + tracksPaginationData.currentOffset, track));
 };
 
-const showTopArtistsErrorMessage = () => {
+const showTopArtistsErrorMessage = (): void => {
   const element = document.querySelector('#top-artists-grid .error-message');
   if (element == null) return;
   element.classList.remove('hidden');
 };
 
-const showTopTracksErrorMessage = () => {
+const showTopTracksErrorMessage = (): void => {
   const element = document.querySelector('#top-tracks-grid .error-message');
   if (element == null) return;
   element.classList.remove('hidden');
