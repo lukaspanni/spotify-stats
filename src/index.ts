@@ -60,10 +60,10 @@ app.get('/spotify-callback', async (req, res) => {
   const storedState = req.cookies ? req.cookies[stateKey] : null;
   // console.debug('state from cookie', storedState);
 
-  if (state === null || state !== storedState) {
+  if (state === null || state !== storedState)
     //state did not match
     res.send('Error, state did not match');
-  } else {
+  else {
     res.clearCookie(stateKey);
 
     const data = new URLSearchParams({
@@ -150,7 +150,7 @@ app.use(
     pathRewrite: {
       '^/proxy-api': ''
     },
-    onProxyReq: (proxyReq, req, res) => {
+    onProxyReq: (proxyReq, req) => {
       proxyReq.setHeader('Authorization', req.headers.authorization ?? '');
     }
   })
@@ -159,7 +159,7 @@ app.use(
 app.listen(port);
 console.log('Listen on ', port);
 
-const redirectInvalidToken = (res: any) => {
+const redirectInvalidToken = (res: any): void => {
   res.redirect(
     '/#' +
       new URLSearchParams({
