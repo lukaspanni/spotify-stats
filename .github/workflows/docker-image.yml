@@ -34,7 +34,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - name: 'Automated Version Bump'
-        if: ${{ github.event.head_commit.committer.username == 'dependabot[bot]' }}
+        if: ${{ github.event.head_commit.author.username == 'dependabot[bot]' }}
         uses: 'phips28/gh-action-bump-version@master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,7 +42,7 @@ jobs:
           tag-prefix: 'v'
           version-type: 'patch'
       - name: 'Automated Version Bump'
-        if: ${{ github.event.head_commit.committer.username != 'dependabot[bot]' }}
+        if: ${{ github.event.head_commit.author.username != 'dependabot[bot]' }}
         uses: 'phips28/gh-action-bump-version@master'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
