@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/lukaspanni/spotify-stats#readme",
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.5",
+    "@types/cookie-parser": "^1.4.6",
     "@types/cors": "^2.8.15",
     "@types/express": "^4.17.20",
     "@types/jest": "^29.5.7",
