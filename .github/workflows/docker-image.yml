@@ -56,7 +56,7 @@ jobs:
     needs: [bump-version, lint-test]
 
     outputs:
-      - image-sha: ${{ steps.imagebuild.digest }}
+      image-sha: ${{ steps.imagebuild.digest }}
     steps:
       - uses: actions/checkout@v4
 
