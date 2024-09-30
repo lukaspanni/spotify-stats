@@ -144,14 +144,13 @@ app.get('/refresh-token', async (req, res) => {
 
 app.use(
   '/proxy-api',
-  createProxyMiddleware('/proxy-api', {
+  createProxyMiddleware({
     target: baseUrl,
     changeOrigin: true,
-    pathRewrite: {
-      '^/proxy-api': ''
-    },
-    onProxyReq: (proxyReq, req) => {
-      proxyReq.setHeader('Authorization', req.headers.authorization ?? '');
+    on: {
+      proxyReq: (proxyReq, req) => {
+        proxyReq.setHeader('Authorization', req.headers.authorization ?? '');
+      }
     }
   })
 );
