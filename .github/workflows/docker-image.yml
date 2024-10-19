@@ -113,4 +113,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.CD_TOKEN }}
         run: |
-          gh api repos/lukaspanni/infrastructure/dispatches --input - <<< '{"event_type": "${{ github.event.repository.name }}", "client_payload": { "kubernetes-config": "top-lists.yml", "image-name": "ghcr.io/lukaspanni/spotify-stats", "image-sha": "${{ needs.build-docker.outputs.image-sha }}" }'
+          gh api repos/lukaspanni/infrastructure/dispatches --input - <<< '{"event_type": "${{ github.event.repository.name }}", "client_payload": { "kubernetes-config": "top-lists/", "image-name": "ghcr.io/lukaspanni/spotify-stats", "image-sha": "${{ needs.build-docker.outputs.image-sha }}" }'
