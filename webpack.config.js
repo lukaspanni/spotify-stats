@@ -40,6 +40,7 @@ module.exports = [
                 name: 'index.css'
               }
             },
+            { loader: 'extract-loader' },
             { loader: 'css-loader' },
             {
               loader: 'postcss-loader',
