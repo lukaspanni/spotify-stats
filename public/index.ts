@@ -299,7 +299,7 @@ const handleCreatePlaylist = async (): Promise<void> => {
   const playlistName = playlistNameInput?.value || 'My Top Tracks';
 
   if (allTopTracks.length === 0) {
-    alert(translationMapper.get('playlist-created-error'));
+    alert(translationMapper.get('no-tracks-available'));
     return;
   }
 

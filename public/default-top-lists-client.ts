@@ -42,6 +42,11 @@ export class DefaultTopListsClient implements TopListsClient {
   }
 
   public async createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
+    const result = await this.wrapCall(() => this.createPlaylistInternal(name, trackUris));
+    return result ?? null;
+  }
+
+  private async createPlaylistInternal(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
     try {
       // First, get the user's Spotify ID
       const userUrl = this.proxyActive
@@ -86,26 +91,30 @@ export class DefaultTopListsClient implements TopListsClient {
 
       const playlistData = await createResponse.json();
 
-      // Add tracks to the playlist
-      const addTracksUrl = this.proxyActive
-        ? `${DefaultTopListsClient.proxyBaseUrl}playlists/${playlistData.id}/tracks`
-        : `${DefaultTopListsClient.baseUrl}playlists/${playlistData.id}/tracks`;
+      // Add tracks to the playlist in batches of 100 (Spotify API limit)
+      const batchSize = 100;
+      for (let i = 0; i < trackUris.length; i += batchSize) {
+        const batch = trackUris.slice(i, i + batchSize);
+        const addTracksUrl = this.proxyActive
+          ? `${DefaultTopListsClient.proxyBaseUrl}playlists/${playlistData.id}/tracks`
+          : `${DefaultTopListsClient.baseUrl}playlists/${playlistData.id}/tracks`;
 
-      const addTracksResponse = await fetch(addTracksUrl, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          Authorization: 'Bearer ' + this.accessToken,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          uris: trackUris
-        })
-      });
+        const addTracksResponse = await fetch(addTracksUrl, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            Authorization: 'Bearer ' + this.accessToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            uris: batch
+          })
+        });
 
-      if (!addTracksResponse.ok) {
-        console.error('Failed to add tracks to playlist');
-        return null;
+        if (!addTracksResponse.ok) {
+          console.error(`Failed to add tracks batch ${i / batchSize + 1} to playlist`);
+          // Continue with remaining batches even if one fails
+        }
       }
 
       return {
