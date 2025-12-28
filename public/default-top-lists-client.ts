@@ -1,10 +1,10 @@
-import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse } from './top-lists-client';
+import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse, CreatePlaylistResponse } from './top-lists-client';
 
 export class DefaultTopListsClient implements TopListsClient {
-  private static baseUrl = 'https://api.spotify.com/v1/me/top/';
-  private static proxyBaseUrl = '/proxy-api/me/top/';
-  private topArtistsUrl = DefaultTopListsClient.baseUrl + 'artists';
-  private topTracksUrl = DefaultTopListsClient.baseUrl + 'tracks';
+  private static baseUrl = 'https://api.spotify.com/v1/';
+  private static proxyBaseUrl = '/proxy-api/';
+  private topArtistsUrl = DefaultTopListsClient.baseUrl + 'me/top/artists';
+  private topTracksUrl = DefaultTopListsClient.baseUrl + 'me/top/tracks';
   private proxyActive = false;
   private fatalError = false;
 
@@ -35,6 +35,81 @@ export class DefaultTopListsClient implements TopListsClient {
     );
   }
 
+  public async createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
+    try {
+      // First, get the user's Spotify ID
+      const userUrl = this.proxyActive ? DefaultTopListsClient.proxyBaseUrl + 'me' : DefaultTopListsClient.baseUrl + 'me';
+      const userResponse = await fetch(userUrl, {
+        mode: 'cors',
+        headers: { Authorization: 'Bearer ' + this.accessToken }
+      });
+      
+      if (!userResponse.ok) {
+        console.error('Failed to get user ID');
+        return null;
+      }
+      
+      const userData = await userResponse.json();
+      const userId = userData.id;
+
+      // Create the playlist
+      const createPlaylistUrl = this.proxyActive 
+        ? `${DefaultTopListsClient.proxyBaseUrl}users/${userId}/playlists`
+        : `${DefaultTopListsClient.baseUrl}users/${userId}/playlists`;
+      
+      const createResponse = await fetch(createPlaylistUrl, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          Authorization: 'Bearer ' + this.accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: name,
+          description: 'Created by Spotify Stats',
+          public: false
+        })
+      });
+
+      if (!createResponse.ok) {
+        console.error('Failed to create playlist');
+        return null;
+      }
+
+      const playlistData = await createResponse.json();
+
+      // Add tracks to the playlist
+      const addTracksUrl = this.proxyActive
+        ? `${DefaultTopListsClient.proxyBaseUrl}playlists/${playlistData.id}/tracks`
+        : `${DefaultTopListsClient.baseUrl}playlists/${playlistData.id}/tracks`;
+      
+      const addTracksResponse = await fetch(addTracksUrl, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          Authorization: 'Bearer ' + this.accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          uris: trackUris
+        })
+      });
+
+      if (!addTracksResponse.ok) {
+        console.error('Failed to add tracks to playlist');
+        return null;
+      }
+
+      return {
+        id: playlistData.id,
+        external_urls: playlistData.external_urls
+      };
+    } catch (error) {
+      console.error('Error creating playlist:', error);
+      return null;
+    }
+  }
+
   private async wrapCall<T>(functionCall: () => Promise<T | undefined>): Promise<T | undefined> {
     return functionCall().catch(async (error) => {
       console.error('Error fetching data, switching to proxy', error);
@@ -49,8 +124,8 @@ export class DefaultTopListsClient implements TopListsClient {
 
   private switchToProxyFallback(): void {
     if (this.proxyActive) return;
-    this.topArtistsUrl = DefaultTopListsClient.proxyBaseUrl + 'artists';
-    this.topTracksUrl = DefaultTopListsClient.proxyBaseUrl + 'tracks';
+    this.topArtistsUrl = DefaultTopListsClient.proxyBaseUrl + 'me/top/artists';
+    this.topTracksUrl = DefaultTopListsClient.proxyBaseUrl + 'me/top/tracks';
     this.proxyActive = true;
   }
 

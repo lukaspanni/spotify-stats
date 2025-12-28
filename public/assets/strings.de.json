@@ -10,5 +10,13 @@
   "no-data-found-message": "Hoppla... keine Daten gefunden!",
   "load-more-button": "Mehr Laden",
   "top-tracks-header": "Top-Titel",
-  "top-artists-header": "Top-Künstler"
+  "top-artists-header": "Top-Künstler",
+  "create-playlist-button": "Playlist Erstellen",
+  "create-playlist-dialog-title": "Playlist aus Top-Titeln erstellen",
+  "create-playlist-dialog-description": "Erstelle eine neue Spotify-Playlist mit deinen Top-Titeln aus dieser Zeitspanne.",
+  "playlist-name-label": "Playlist-Name",
+  "cancel-button": "Abbrechen",
+  "confirm-button": "Erstellen",
+  "playlist-created-success": "Playlist erfolgreich erstellt!",
+  "playlist-created-error": "Fehler beim Erstellen der Playlist. Bitte versuche es erneut."
 }

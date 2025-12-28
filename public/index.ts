@@ -1,4 +1,6 @@
 import { MDCSelect } from '@material/select';
+import { MDCDialog } from '@material/dialog';
+import { MDCTextField } from '@material/textfield';
 import { Artist, SpotifyTopListElement, TimeRange, TopListsClient, Track } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { PaginationData } from './pagination-data';
@@ -17,6 +19,9 @@ const tracksPaginationData = new PaginationData(0, defaultLimit, 0);
 let accessToken: { token: string; expires: number; refreshToken: string } | null = null;
 
 let translationMapper: TranslationMapper;
+
+// Store all fetched tracks for playlist creation
+let allTopTracks: Track[] = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   translationMapper = new TranslationMapper(TranslationMapper.detectLanguage());
@@ -112,6 +117,31 @@ const initMaterialComponents = (): void => {
   const select = new MDCSelect(selectElement);
   select.setSelectedIndex(allowedTimeRanges.indexOf(timeRange));
   select.listen('MDCSelect:change', () => selectedTimeRangeChanged(select.value));
+
+  // Initialize text field for playlist name input
+  const textFieldElement = document.querySelector('.mdc-text-field');
+  if (textFieldElement) {
+    new MDCTextField(textFieldElement);
+  }
+
+  // Initialize dialog
+  const dialogElement = document.querySelector('#create-playlist-dialog');
+  if (dialogElement) {
+    const dialog = new MDCDialog(dialogElement);
+    
+    const createPlaylistButton = document.getElementById('create-playlist-button');
+    if (createPlaylistButton) {
+      createPlaylistButton.addEventListener('click', () => {
+        showCreatePlaylistDialog(dialog);
+      });
+    }
+
+    dialog.listen('MDCDialog:closed', (event: any) => {
+      if (event.detail.action === 'accept') {
+        handleCreatePlaylist();
+      }
+    });
+  }
 };
 
 const getTimeRange = (): void => {
@@ -197,6 +227,7 @@ const createCell = (topListElement: SpotifyTopListElement, ...content: HTMLEleme
 const resetTopLists = (): void => {
   artistsPaginationData.reset(0, defaultLimit, 0);
   tracksPaginationData.reset(0, defaultLimit, 0);
+  allTopTracks = [];
   document.querySelectorAll('.grid-content').forEach((e) => (e.innerHTML = ''));
   document.querySelectorAll('.error-message').forEach((e) => e.classList.add('hidden'));
 };
@@ -230,6 +261,10 @@ const fetchTopTracks = async (): Promise<void> => {
     return;
   }
   tracksPaginationData.total = topTracks.total;
+  
+  // Store tracks for playlist creation
+  allTopTracks = allTopTracks.concat(topTracks.items);
+  
   topTracks.items.forEach((track, index) => addTrackCell(++index + tracksPaginationData.currentOffset, track));
 };
 
@@ -243,4 +278,47 @@ const showTopTracksErrorMessage = (): void => {
   const element = document.querySelector('#top-tracks-grid .error-message');
   if (element == null) return;
   element.classList.remove('hidden');
+};
+
+const showCreatePlaylistDialog = (dialog: MDCDialog): void => {
+  const playlistNameInput = document.getElementById('playlist-name-input') as HTMLInputElement;
+  if (playlistNameInput) {
+    // Generate default name based on time range
+    let timeRangeString = '';
+    try {
+      timeRangeString = translationMapper.get('time-range-' + timeRange.replace('_', '-'));
+    } catch (e) {
+      timeRangeString = timeRange
+        .split('_')
+        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(' ');
+    }
+    const defaultName = `Top Tracks - ${timeRangeString}`;
+    playlistNameInput.value = defaultName;
+  }
+  dialog.open();
+};
+
+const handleCreatePlaylist = async (): Promise<void> => {
+  const playlistNameInput = document.getElementById('playlist-name-input') as HTMLInputElement;
+  const playlistName = playlistNameInput?.value || 'My Top Tracks';
+
+  if (allTopTracks.length === 0) {
+    alert(translationMapper.get('playlist-created-error'));
+    return;
+  }
+
+  // Convert tracks to URIs
+  const trackUris = allTopTracks.map((track) => `spotify:track:${track.id}`);
+
+  // Create the playlist
+  const result = await topListsClient.createPlaylist(playlistName, trackUris);
+
+  if (result) {
+    alert(translationMapper.get('playlist-created-success'));
+    // Open playlist in Spotify
+    window.open(result.external_urls.spotify, '_blank');
+  } else {
+    alert(translationMapper.get('playlist-created-error'));
+  }
 };
