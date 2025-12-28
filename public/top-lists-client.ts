@@ -15,7 +15,10 @@ export type TopTracksResponse = { items: Track[]; total: number };
 
 export type TimeRange = 'short_term' | 'medium_term' | 'long_term';
 
+export type CreatePlaylistResponse = { id: string; external_urls: { spotify: string } };
+
 export interface TopListsClient {
   getTopArtists(timeRange: TimeRange, limit?: number, offset?: number): Promise<TopArtistsResponse>;
   getTopTracks(timeRange: TimeRange, limit?: number, offset?: number): Promise<TopTracksResponse>;
+  createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null>;
 }

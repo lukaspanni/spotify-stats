@@ -7,6 +7,8 @@
 @use '@material/select/styles' as select-styles;
 @use '@material/button/styles' as button-styles;
 @use '@material/button';
+@use '@material/dialog/mdc-dialog';
+@use '@material/textfield/mdc-text-field';
 
 body {
   font-family: sans-serif;
@@ -47,6 +49,15 @@ body {
 
   width: 100%;
   margin-top: 2%;
+  font-weight: bold;
+}
+
+#create-playlist-button {
+  @include button.container-fill-color(#1db954);
+  @include button.ink-color(white);
+
+  width: 100%;
+  margin-top: 1em;
   font-weight: bold;
 }
 

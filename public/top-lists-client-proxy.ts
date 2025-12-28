@@ -1,5 +1,5 @@
 import { DefaultTopListsClient } from './default-top-lists-client';
-import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse } from './top-lists-client';
+import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse, CreatePlaylistResponse } from './top-lists-client';
 
 export class TopListsClientProxy implements TopListsClient {
   private client: DefaultTopListsClient;
@@ -31,5 +31,10 @@ export class TopListsClientProxy implements TopListsClient {
     const result = await this.client.getTopTracks(timeRange, limit, offset);
     this.cache.set(cacheKey, result);
     return result;
+  }
+
+  public async createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
+    // Don't cache playlist creation, always create new
+    return this.client.createPlaylist(name, trackUris);
   }
 }
