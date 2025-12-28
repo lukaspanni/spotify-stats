@@ -1,4 +1,10 @@
-import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse, CreatePlaylistResponse } from './top-lists-client';
+import {
+  TimeRange,
+  TopArtistsResponse,
+  TopListsClient,
+  TopTracksResponse,
+  CreatePlaylistResponse
+} from './top-lists-client';
 
 export class DefaultTopListsClient implements TopListsClient {
   private static baseUrl = 'https://api.spotify.com/v1/';
@@ -38,25 +44,27 @@ export class DefaultTopListsClient implements TopListsClient {
   public async createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
     try {
       // First, get the user's Spotify ID
-      const userUrl = this.proxyActive ? DefaultTopListsClient.proxyBaseUrl + 'me' : DefaultTopListsClient.baseUrl + 'me';
+      const userUrl = this.proxyActive
+        ? DefaultTopListsClient.proxyBaseUrl + 'me'
+        : DefaultTopListsClient.baseUrl + 'me';
       const userResponse = await fetch(userUrl, {
         mode: 'cors',
         headers: { Authorization: 'Bearer ' + this.accessToken }
       });
-      
+
       if (!userResponse.ok) {
         console.error('Failed to get user ID');
         return null;
       }
-      
+
       const userData = await userResponse.json();
       const userId = userData.id;
 
       // Create the playlist
-      const createPlaylistUrl = this.proxyActive 
+      const createPlaylistUrl = this.proxyActive
         ? `${DefaultTopListsClient.proxyBaseUrl}users/${userId}/playlists`
         : `${DefaultTopListsClient.baseUrl}users/${userId}/playlists`;
-      
+
       const createResponse = await fetch(createPlaylistUrl, {
         method: 'POST',
         mode: 'cors',
@@ -82,7 +90,7 @@ export class DefaultTopListsClient implements TopListsClient {
       const addTracksUrl = this.proxyActive
         ? `${DefaultTopListsClient.proxyBaseUrl}playlists/${playlistData.id}/tracks`
         : `${DefaultTopListsClient.baseUrl}playlists/${playlistData.id}/tracks`;
-      
+
       const addTracksResponse = await fetch(addTracksUrl, {
         method: 'POST',
         mode: 'cors',
