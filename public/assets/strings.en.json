@@ -18,5 +18,6 @@
   "cancel-button": "Cancel",
   "confirm-button": "Create",
   "playlist-created-success": "Playlist created successfully!",
-  "playlist-created-error": "Failed to create playlist. Please try again."
+  "playlist-created-error": "Failed to create playlist. Please try again.",
+  "no-tracks-available": "No tracks available. Please load tracks first."
 }

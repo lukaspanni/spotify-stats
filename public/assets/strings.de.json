@@ -18,5 +18,6 @@
   "cancel-button": "Abbrechen",
   "confirm-button": "Erstellen",
   "playlist-created-success": "Playlist erfolgreich erstellt!",
-  "playlist-created-error": "Fehler beim Erstellen der Playlist. Bitte versuche es erneut."
+  "playlist-created-error": "Fehler beim Erstellen der Playlist. Bitte versuche es erneut.",
+  "no-tracks-available": "Keine Titel verfügbar. Bitte lade zuerst Titel."
 }
