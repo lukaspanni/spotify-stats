@@ -120,26 +120,21 @@ const initMaterialComponents = (): void => {
 
   // Initialize text field for playlist name input
   const textFieldElement = document.querySelector('.mdc-text-field');
-  if (textFieldElement) {
-    new MDCTextField(textFieldElement);
-  }
+  if (textFieldElement) new MDCTextField(textFieldElement);
 
   // Initialize dialog
   const dialogElement = document.querySelector('#create-playlist-dialog');
   if (dialogElement) {
     const dialog = new MDCDialog(dialogElement);
-    
+
     const createPlaylistButton = document.getElementById('create-playlist-button');
-    if (createPlaylistButton) {
+    if (createPlaylistButton)
       createPlaylistButton.addEventListener('click', () => {
         showCreatePlaylistDialog(dialog);
       });
-    }
 
     dialog.listen('MDCDialog:closed', (event: any) => {
-      if (event.detail.action === 'accept') {
-        handleCreatePlaylist();
-      }
+      if (event.detail.action === 'accept') handleCreatePlaylist();
     });
   }
 };
@@ -261,10 +256,10 @@ const fetchTopTracks = async (): Promise<void> => {
     return;
   }
   tracksPaginationData.total = topTracks.total;
-  
+
   // Store tracks for playlist creation
   allTopTracks = allTopTracks.concat(topTracks.items);
-  
+
   topTracks.items.forEach((track, index) => addTrackCell(++index + tracksPaginationData.currentOffset, track));
 };
 
@@ -287,7 +282,7 @@ const showCreatePlaylistDialog = (dialog: MDCDialog): void => {
     let timeRangeString = '';
     try {
       timeRangeString = translationMapper.get('time-range-' + timeRange.replace('_', '-'));
-    } catch (e) {
+    } catch {
       timeRangeString = timeRange
         .split('_')
         .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
@@ -318,7 +313,5 @@ const handleCreatePlaylist = async (): Promise<void> => {
     alert(translationMapper.get('playlist-created-success'));
     // Open playlist in Spotify
     window.open(result.external_urls.spotify, '_blank');
-  } else {
-    alert(translationMapper.get('playlist-created-error'));
-  }
+  } else alert(translationMapper.get('playlist-created-error'));
 };

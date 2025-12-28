@@ -1,5 +1,11 @@
 import { DefaultTopListsClient } from './default-top-lists-client';
-import { TimeRange, TopArtistsResponse, TopListsClient, TopTracksResponse, CreatePlaylistResponse } from './top-lists-client';
+import {
+  TimeRange,
+  TopArtistsResponse,
+  TopListsClient,
+  TopTracksResponse,
+  CreatePlaylistResponse
+} from './top-lists-client';
 
 export class TopListsClientProxy implements TopListsClient {
   private client: DefaultTopListsClient;
