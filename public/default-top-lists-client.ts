@@ -98,7 +98,7 @@ export class DefaultTopListsClient implements TopListsClient {
       const userUrl = this.buildUrl('me');
       const userResponse = await this.makeRequest<UserProfile>(userUrl, schemas.UserProfile);
 
-      if (!userResponse || !userResponse.id || userResponse.id.trim() === '') {
+      if (!userResponse?.id?.trim()) {
         console.error('User ID is missing or invalid in user profile response');
         return null;
       }
