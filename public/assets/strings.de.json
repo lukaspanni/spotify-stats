@@ -17,6 +17,7 @@
   "playlist-name-label": "Playlist-Name",
   "select-tracks-label": "Titel auswählen:",
   "loading-tracks": "Lade Titel...",
+  "creating-playlist": "Erstelle...",
   "cancel-button": "Abbrechen",
   "confirm-button": "Erstellen",
   "playlist-created-success": "Playlist erfolgreich erstellt!",

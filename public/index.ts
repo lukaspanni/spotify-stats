@@ -22,6 +22,7 @@ let translationMapper: TranslationMapper;
 
 // Store all fetched tracks for display
 let allTopTracks: Track[] = [];
+const allTopTrackIds: Set<string> = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
   translationMapper = new TranslationMapper(TranslationMapper.detectLanguage());
@@ -230,6 +231,7 @@ const resetTopLists = (): void => {
   artistsPaginationData.reset(0, defaultLimit, 0);
   tracksPaginationData.reset(0, defaultLimit, 0);
   allTopTracks = [];
+  allTopTrackIds.clear();
   document.querySelectorAll('.grid-content').forEach((e) => (e.innerHTML = ''));
   document.querySelectorAll('.error-message').forEach((e) => e.classList.add('hidden'));
 
@@ -268,9 +270,9 @@ const fetchTopTracks = async (): Promise<void> => {
   }
   tracksPaginationData.total = topTracks.total;
 
-  // Store tracks for display (avoid duplicates)
-  const existingTrackIds = new Set(allTopTracks.map((track) => track.id));
-  const uniqueNewTracks = topTracks.items.filter((track) => !existingTrackIds.has(track.id));
+  // Store tracks for display (avoid duplicates using persistent Set)
+  const uniqueNewTracks = topTracks.items.filter((track) => !allTopTrackIds.has(track.id));
+  uniqueNewTracks.forEach((track) => allTopTrackIds.add(track.id));
   allTopTracks = allTopTracks.concat(uniqueNewTracks);
 
   topTracks.items.forEach((track, index) => addTrackCell(++index + tracksPaginationData.currentOffset, track));
@@ -378,8 +380,11 @@ const handleCreatePlaylist = async (): Promise<void> => {
   // Disable confirm button and show loading state
   if (confirmButton) {
     confirmButton.setAttribute('disabled', 'true');
-    confirmButton.querySelector('.mdc-button__label')!.textContent =
-      translationMapper.get('loading-tracks') || 'Creating...';
+    try {
+      confirmButton.querySelector('.mdc-button__label')!.textContent = translationMapper.get('creating-playlist');
+    } catch {
+      confirmButton.querySelector('.mdc-button__label')!.textContent = 'Creating...';
+    }
   }
 
   // Convert track IDs to URIs
