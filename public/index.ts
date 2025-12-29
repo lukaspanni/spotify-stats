@@ -400,12 +400,40 @@ const handleCreatePlaylist = async (): Promise<void> => {
       confirmButton.querySelector('.mdc-button__label')!.textContent = translationMapper.get('confirm-button');
     } catch {
       confirmButton.querySelector('.mdc-button__label')!.textContent = 'Create';
-    }
-  }
+  // Open a blank window synchronously; will navigate it after playlist creation
+  const playlistWindow = window.open('', '_blank');
+
+  // Create the playlist
+  const result = await topListsClient.createPlaylist(playlistName, trackUris);
 
   if (result) {
     alert(translationMapper.get('playlist-created-success'));
-    // Open playlist in Spotify
-    window.open(result.external_urls.spotify, '_blank');
-  } else alert(translationMapper.get('playlist-created-error'));
+
+    const playlistUrl = result.external_urls.spotify;
+
+    if (playlistWindow && !playlistWindow.closed) {
+      // Navigate the pre-opened window to the playlist URL
+      playlistWindow.location.href = playlistUrl;
+    } else {
+      // Popup was likely blocked; provide a fallback using clipboard and a visible URL
+      const message = `${translationMapper.get('playlist-created-success')} ` +
+        `${translationMapper.get('playlist-url-label') || 'Playlist URL:'} ${playlistUrl}`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(playlistUrl);
+          alert(message + ' ' + (translationMapper.get('playlist-url-copied') || '(URL copied to clipboard.)'));
+        } catch {
+          alert(message);
+        }
+      } else {
+        alert(message);
+      }
+    }
+  } else {
+    if (playlistWindow && !playlistWindow.closed) {
+      playlistWindow.close();
+    }
+    alert(translationMapper.get('playlist-created-error'));
+  }
 };
