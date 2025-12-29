@@ -104,16 +104,16 @@
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="create-playlist-dialog-title"
-          aria-describedby="create-playlist-dialog-content">
+          aria-describedby="create-playlist-dialog-description">
           <h2 class="mdc-dialog__title" id="create-playlist-dialog-title" data-translation-key="create-playlist-dialog-title">
             Create Playlist from Top Tracks
           </h2>
           <div class="mdc-dialog__content" id="create-playlist-dialog-content">
-            <p data-translation-key="create-playlist-dialog-description">
+            <p id="create-playlist-dialog-description" data-translation-key="create-playlist-dialog-description">
               Create a new Spotify playlist with your top tracks from this time range.
             </p>
             <div class="mdc-text-field mdc-text-field--outlined" style="width: 100%; margin-top: 16px;">
-              <input type="text" id="playlist-name-input" class="mdc-text-field__input" aria-labelledby="playlist-name-label">
+              <input type="text" id="playlist-name-input" class="mdc-text-field__input" aria-labelledby="playlist-name-label" aria-describedby="create-playlist-dialog-description" required aria-required="true">
               <span class="mdc-notched-outline">
                 <span class="mdc-notched-outline__leading"></span>
                 <span class="mdc-notched-outline__notch">
@@ -122,13 +122,20 @@
                 <span class="mdc-notched-outline__trailing"></span>
               </span>
             </div>
+            <div id="playlist-tracks-selection" style="margin-top: 16px; max-height: 300px; overflow-y: auto;">
+              <p data-translation-key="select-tracks-label" style="font-weight: bold; margin-bottom: 8px;">Select tracks to include:</p>
+              <div id="tracks-checklist"></div>
+            </div>
+            <div id="playlist-loading" style="display: none; text-align: center; padding: 16px;">
+              <p data-translation-key="loading-tracks">Loading tracks...</p>
+            </div>
           </div>
           <div class="mdc-dialog__actions">
             <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel">
               <div class="mdc-button__ripple"></div>
               <span class="mdc-button__label" data-translation-key="cancel-button">Cancel</span>
             </button>
-            <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept">
+            <button type="button" class="mdc-button mdc-dialog__button" id="create-playlist-confirm-button" data-mdc-dialog-action="accept">
               <div class="mdc-button__ripple"></div>
               <span class="mdc-button__label" data-translation-key="confirm-button">Create</span>
             </button>
