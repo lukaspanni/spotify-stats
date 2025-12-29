@@ -27,18 +27,16 @@ export class DefaultTopListsClient implements TopListsClient {
     limit: number = 10,
     offset: number = 0
   ): Promise<TopArtistsResponse> {
-    const url = this.buildUrl('me/top/artists');
     const result = await this.makeRequest<TopArtistsResponse>(
-      `${url}?limit=${limit}&offset=${offset}&time_range=${timeRange}`,
+      `me/top/artists?limit=${limit}&offset=${offset}&time_range=${timeRange}`,
       schemas.TopArtistsResponse
     );
     return result ?? { items: [], total: 0 };
   }
 
   public async getTopTracks(timeRange: TimeRange, limit: number = 10, offset: number = 0): Promise<TopTracksResponse> {
-    const url = this.buildUrl('me/top/tracks');
     const result = await this.makeRequest<TopTracksResponse>(
-      `${url}?limit=${limit}&offset=${offset}&time_range=${timeRange}`,
+      `me/top/tracks?limit=${limit}&offset=${offset}&time_range=${timeRange}`,
       schemas.TopTracksResponse
     );
     return result ?? { items: [], total: 0 };
@@ -54,7 +52,7 @@ export class DefaultTopListsClient implements TopListsClient {
   }
 
   private async makeRequest<T>(
-    url: string,
+    path: string,
     schema: { parse: (data: unknown) => T },
     options?: RequestInit
   ): Promise<T | undefined> {
@@ -64,39 +62,49 @@ export class DefaultTopListsClient implements TopListsClient {
       ...options
     };
 
+    const url = this.buildUrl(path);
+    const result = await this.fetchWithFallback(url, path, fetchOptions, schema);
+    return result;
+  }
+
+  private async fetchWithFallback<T>(
+    url: string,
+    path: string,
+    fetchOptions: RequestInit,
+    schema: { parse: (data: unknown) => T }
+  ): Promise<T | undefined> {
     try {
-      const result = await fetch(url, fetchOptions);
-      if (!result.ok) throw new Error(`Request failed with status ${result.status}`);
-      const data = await result.json();
+      const response = await fetch(url, fetchOptions);
+      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+      const data = await response.json();
       return schema.parse(data);
     } catch (error) {
-      if (!this.proxyActive) {
-        console.error('Error fetching data, switching to proxy', error);
-        this.proxyActive = true;
-        // Rebuild URL with proxy and retry
-        const path = url.replace(DefaultTopListsClient.baseUrl, '');
-        const proxyUrl = this.buildUrl(path);
-        try {
-          const result = await fetch(proxyUrl, fetchOptions);
-          if (!result.ok) throw new Error(`Request failed with status ${result.status}`);
-          const data = await result.json();
-          return schema.parse(data);
-        } catch (retryError) {
-          console.error('Error fetching data with proxy, aborting', retryError);
-          this.fatalError = true;
-          return undefined;
-        }
+      if (this.proxyActive) {
+        console.error('Request failed', error);
+        return undefined;
       }
-      console.error('Request failed', error);
-      return undefined;
+
+      console.error('Error fetching data, switching to proxy', error);
+      this.proxyActive = true;
+      const proxyUrl = this.buildUrl(path);
+
+      try {
+        const response = await fetch(proxyUrl, fetchOptions);
+        if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+        const data = await response.json();
+        return schema.parse(data);
+      } catch (retryError) {
+        console.error('Error fetching data with proxy, aborting', retryError);
+        this.fatalError = true;
+        return undefined;
+      }
     }
   }
 
   private async createPlaylistInternal(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
     try {
       // First, get the user's Spotify ID
-      const userUrl = this.buildUrl('me');
-      const userResponse = await this.makeRequest<UserProfile>(userUrl, schemas.UserProfile);
+      const userResponse = await this.makeRequest<UserProfile>('me', schemas.UserProfile);
 
       if (!userResponse?.id?.trim()) {
         console.error('User ID is missing or invalid in user profile response');
@@ -106,8 +114,6 @@ export class DefaultTopListsClient implements TopListsClient {
       const userId = userResponse.id;
 
       // Create the playlist
-      const createPlaylistUrl = this.buildUrl(`users/${userId}/playlists`);
-
       const createOptions: RequestInit = {
         method: 'POST',
         headers: {
@@ -122,7 +128,7 @@ export class DefaultTopListsClient implements TopListsClient {
       };
 
       const playlistData = await this.makeRequest<CreatePlaylistResponse>(
-        createPlaylistUrl,
+        `users/${userId}/playlists`,
         schemas.CreatePlaylistResponse,
         createOptions
       );
@@ -136,7 +142,6 @@ export class DefaultTopListsClient implements TopListsClient {
       const batchSize = 100;
       for (let i = 0; i < trackUris.length; i += batchSize) {
         const batch = trackUris.slice(i, i + batchSize);
-        const addTracksUrl = this.buildUrl(`playlists/${playlistData.id}/tracks`);
 
         const addTracksOptions: RequestInit = {
           method: 'POST',
@@ -149,6 +154,7 @@ export class DefaultTopListsClient implements TopListsClient {
           })
         };
 
+        const addTracksUrl = this.buildUrl(`playlists/${playlistData.id}/tracks`);
         try {
           const response = await fetch(addTracksUrl, addTracksOptions);
           if (!response.ok) console.error(`Failed to add tracks batch ${i / batchSize + 1} to playlist`);
