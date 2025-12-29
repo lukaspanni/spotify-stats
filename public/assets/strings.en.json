@@ -15,9 +15,14 @@
   "create-playlist-dialog-title": "Create Playlist from Top Tracks",
   "create-playlist-dialog-description": "Create a new Spotify playlist with your top tracks from this time range.",
   "playlist-name-label": "Playlist Name",
+  "select-tracks-label": "Select tracks to include:",
+  "loading-tracks": "Loading tracks...",
   "cancel-button": "Cancel",
   "confirm-button": "Create",
   "playlist-created-success": "Playlist created successfully!",
   "playlist-created-error": "Failed to create playlist. Please try again.",
-  "no-tracks-available": "No tracks available. Please load tracks first."
+  "no-tracks-available": "No tracks available. Please load tracks first.",
+  "playlist-title-all-time": "My Top Tracks - All Time",
+  "playlist-title-6-months": "My Top Tracks - Last 6 Months",
+  "playlist-title-4-weeks": "My Top Tracks - Last 4 Weeks"
 }

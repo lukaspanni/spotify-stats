@@ -20,7 +20,7 @@ let accessToken: { token: string; expires: number; refreshToken: string } | null
 
 let translationMapper: TranslationMapper;
 
-// Store all fetched tracks for playlist creation
+// Store all fetched tracks for display
 let allTopTracks: Track[] = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -90,10 +90,17 @@ const initializeView = (authorized: boolean): void => {
   //TODO: refactor out
   const loadMoreTracksButton = document.getElementById('load-more-tracks');
   const loadMoreArtistsButton = document.getElementById('load-more-artists');
+  const createPlaylistButton = document.getElementById('create-playlist-button');
+
   if (loadMoreTracksButton == null || loadMoreArtistsButton == null) return;
+
+  // Initially hide the create playlist button
+  if (createPlaylistButton) createPlaylistButton.style.display = 'none';
+
   tracksPaginationData.registerChangedHandler('load-more-button', (value) => {
     loadMoreTracksButton.style.display = value.remainingElements > 0 ? 'block' : 'none';
   });
+
   artistsPaginationData.registerChangedHandler('load-more-button', (value) => {
     loadMoreArtistsButton.style.display = value.remainingElements > 0 ? 'block' : 'none';
   });
@@ -225,6 +232,10 @@ const resetTopLists = (): void => {
   allTopTracks = [];
   document.querySelectorAll('.grid-content').forEach((e) => (e.innerHTML = ''));
   document.querySelectorAll('.error-message').forEach((e) => e.classList.add('hidden'));
+
+  // Hide create playlist button when resetting
+  const createPlaylistButton = document.getElementById('create-playlist-button');
+  if (createPlaylistButton) createPlaylistButton.style.display = 'none';
 };
 
 const fetchAll = async (): Promise<any> => {
@@ -257,10 +268,16 @@ const fetchTopTracks = async (): Promise<void> => {
   }
   tracksPaginationData.total = topTracks.total;
 
-  // Store tracks for playlist creation
-  allTopTracks = allTopTracks.concat(topTracks.items);
+  // Store tracks for display (avoid duplicates)
+  const existingTrackIds = new Set(allTopTracks.map((track) => track.id));
+  const uniqueNewTracks = topTracks.items.filter((track) => !existingTrackIds.has(track.id));
+  allTopTracks = allTopTracks.concat(uniqueNewTracks);
 
   topTracks.items.forEach((track, index) => addTrackCell(++index + tracksPaginationData.currentOffset, track));
+
+  // Show create playlist button after tracks are loaded
+  const createPlaylistButton = document.getElementById('create-playlist-button');
+  if (createPlaylistButton && allTopTracks.length > 0) createPlaylistButton.style.display = 'block';
 };
 
 const showTopArtistsErrorMessage = (): void => {
@@ -275,39 +292,111 @@ const showTopTracksErrorMessage = (): void => {
   element.classList.remove('hidden');
 };
 
-const showCreatePlaylistDialog = (dialog: MDCDialog): void => {
+const showCreatePlaylistDialog = async (dialog: MDCDialog): Promise<void> => {
   const playlistNameInput = document.getElementById('playlist-name-input') as HTMLInputElement;
+  const tracksChecklistContainer = document.getElementById('tracks-checklist');
+  const playlistLoading = document.getElementById('playlist-loading');
+  const playlistSelection = document.getElementById('playlist-tracks-selection');
+  const confirmButton = document.getElementById('create-playlist-confirm-button');
+
+  if (!tracksChecklistContainer || !playlistLoading || !playlistSelection) return;
+
+  // Set default playlist name using translations
   if (playlistNameInput) {
-    // Generate default name based on time range
-    let timeRangeString = '';
+    let playlistTitleKey = 'playlist-title-4-weeks';
+    if (timeRange === 'long_term') playlistTitleKey = 'playlist-title-all-time';
+    else if (timeRange === 'medium_term') playlistTitleKey = 'playlist-title-6-months';
+
     try {
-      timeRangeString = translationMapper.get('time-range-' + timeRange.replace('_', '-'));
+      playlistNameInput.value = translationMapper.get(playlistTitleKey);
     } catch {
-      timeRangeString = timeRange
-        .split('_')
-        .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-        .join(' ');
+      playlistNameInput.value = 'My Top Tracks';
     }
-    const defaultName = `Top Tracks - ${timeRangeString}`;
-    playlistNameInput.value = defaultName;
   }
+
+  // Show loading and disable confirm button
+  playlistSelection.style.display = 'none';
+  playlistLoading.style.display = 'block';
+  if (confirmButton) confirmButton.setAttribute('disabled', 'true');
+
   dialog.open();
+
+  // Fetch ALL tracks for the selected time range
+  try {
+    const allTracksForTimeRange = await topListsClient.getTopTracks(timeRange, 50, 0);
+
+    if (!allTracksForTimeRange || allTracksForTimeRange.items.length === 0) {
+      alert(translationMapper.get('no-tracks-available'));
+      dialog.close();
+      return;
+    }
+
+    // Build checklist
+    tracksChecklistContainer.innerHTML = '';
+    allTracksForTimeRange.items.forEach((track, index) => {
+      const checkbox = document.createElement('div');
+      checkbox.style.cssText = 'padding: 8px; border-bottom: 1px solid #eee;';
+      checkbox.innerHTML = `
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" checked data-track-id="${track.id}" style="margin-right: 8px;">
+          <span>${index + 1}. ${track.name} - ${track.artists.map((a) => a.name).join(', ')}</span>
+        </label>
+      `;
+      tracksChecklistContainer.appendChild(checkbox);
+    });
+
+    // Hide loading, show selection, enable confirm button
+    playlistLoading.style.display = 'none';
+    playlistSelection.style.display = 'block';
+    if (confirmButton) confirmButton.removeAttribute('disabled');
+  } catch (error) {
+    console.error('Error fetching tracks:', error);
+    alert(translationMapper.get('playlist-created-error'));
+    dialog.close();
+  }
 };
 
 const handleCreatePlaylist = async (): Promise<void> => {
   const playlistNameInput = document.getElementById('playlist-name-input') as HTMLInputElement;
   const playlistName = playlistNameInput?.value || 'My Top Tracks';
+  const tracksChecklistContainer = document.getElementById('tracks-checklist');
+  const confirmButton = document.getElementById('create-playlist-confirm-button');
 
-  if (allTopTracks.length === 0) {
+  if (!tracksChecklistContainer) return;
+
+  // Get selected track IDs
+  const selectedCheckboxes = tracksChecklistContainer.querySelectorAll('input[type="checkbox"]:checked');
+  const selectedTrackIds = Array.from(selectedCheckboxes)
+    .map((cb) => (cb as HTMLInputElement).dataset.trackId)
+    .filter((id): id is string => !!id);
+
+  if (selectedTrackIds.length === 0) {
     alert(translationMapper.get('no-tracks-available'));
     return;
   }
 
-  // Convert tracks to URIs
-  const trackUris = allTopTracks.map((track) => `spotify:track:${track.id}`);
+  // Disable confirm button and show loading state
+  if (confirmButton) {
+    confirmButton.setAttribute('disabled', 'true');
+    confirmButton.querySelector('.mdc-button__label')!.textContent =
+      translationMapper.get('loading-tracks') || 'Creating...';
+  }
+
+  // Convert track IDs to URIs
+  const trackUris = selectedTrackIds.map((id) => `spotify:track:${id}`);
 
   // Create the playlist
   const result = await topListsClient.createPlaylist(playlistName, trackUris);
+
+  // Re-enable button
+  if (confirmButton) {
+    confirmButton.removeAttribute('disabled');
+    try {
+      confirmButton.querySelector('.mdc-button__label')!.textContent = translationMapper.get('confirm-button');
+    } catch {
+      confirmButton.querySelector('.mdc-button__label')!.textContent = 'Create';
+    }
+  }
 
   if (result) {
     alert(translationMapper.get('playlist-created-success'));

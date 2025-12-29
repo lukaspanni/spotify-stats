@@ -15,9 +15,14 @@
   "create-playlist-dialog-title": "Playlist aus Top-Titeln erstellen",
   "create-playlist-dialog-description": "Erstelle eine neue Spotify-Playlist mit deinen Top-Titeln aus dieser Zeitspanne.",
   "playlist-name-label": "Playlist-Name",
+  "select-tracks-label": "Titel auswählen:",
+  "loading-tracks": "Lade Titel...",
   "cancel-button": "Abbrechen",
   "confirm-button": "Erstellen",
   "playlist-created-success": "Playlist erfolgreich erstellt!",
   "playlist-created-error": "Fehler beim Erstellen der Playlist. Bitte versuche es erneut.",
-  "no-tracks-available": "Keine Titel verfügbar. Bitte lade zuerst Titel."
+  "no-tracks-available": "Keine Titel verfügbar. Bitte lade zuerst Titel.",
+  "playlist-title-all-time": "Meine Top-Titel - Gesamte Zeit",
+  "playlist-title-6-months": "Meine Top-Titel - Letzte 6 Monate",
+  "playlist-title-4-weeks": "Meine Top-Titel - Letzte 4 Wochen"
 }
