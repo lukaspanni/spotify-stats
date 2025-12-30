@@ -62,19 +62,24 @@ export class DefaultTopListsClient implements TopListsClient {
       ...options
     };
 
-    const url = this.buildUrl(path);
-    const result = await this.fetchWithFallback(url, path, fetchOptions, schema);
-    return result;
+    return this.fetchWithFallback(path, fetchOptions, schema);
   }
 
   private async fetchWithFallback<T>(
-    url: string,
     path: string,
     fetchOptions: RequestInit,
     schema: { parse: (data: unknown) => T }
   ): Promise<T | undefined> {
+    const url = this.buildUrl(path);
+
     try {
       const response = await fetch(url, fetchOptions);
+      if (response.status === 403) {
+        // Insufficient permissions - redirect to re-authorize
+        console.error('Authorization failed - insufficient permissions. Redirecting to login...');
+        window.location.href = '/login';
+        return undefined;
+      }
       if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
       const data = await response.json();
       return schema.parse(data);
@@ -90,6 +95,12 @@ export class DefaultTopListsClient implements TopListsClient {
 
       try {
         const response = await fetch(proxyUrl, fetchOptions);
+        if (response.status === 403) {
+          // Insufficient permissions - redirect to re-authorize
+          console.error('Authorization failed - insufficient permissions. Redirecting to login...');
+          window.location.href = '/login';
+          return undefined;
+        }
         if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
         const data = await response.json();
         return schema.parse(data);
@@ -157,6 +168,11 @@ export class DefaultTopListsClient implements TopListsClient {
         const addTracksUrl = this.buildUrl(`playlists/${playlistData.id}/tracks`);
         try {
           const response = await fetch(addTracksUrl, addTracksOptions);
+          if (response.status === 403) {
+            console.error('Authorization failed - insufficient permissions. Redirecting to login...');
+            window.location.href = '/login';
+            return null;
+          }
           if (!response.ok) console.error(`Failed to add tracks batch ${i / batchSize + 1} to playlist`);
         } catch (error) {
           console.error(`Error adding tracks batch ${i / batchSize + 1}:`, error);
