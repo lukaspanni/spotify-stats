@@ -1,6 +1,7 @@
 import { MDCSelect } from '@material/select';
 import { MDCDialog } from '@material/dialog';
 import { MDCTextField } from '@material/textfield';
+import { MDCSnackbar } from '@material/snackbar';
 import { Artist, SpotifyTopListElement, TimeRange, TopListsClient, Track } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { PaginationData } from './pagination-data';
@@ -23,6 +24,8 @@ let translationMapper: TranslationMapper;
 // Store all fetched tracks for display
 let allTopTracks: Track[] = [];
 const allTopTrackIds: Set<string> = new Set();
+
+let snackbar: MDCSnackbar;
 
 document.addEventListener('DOMContentLoaded', async () => {
   translationMapper = new TranslationMapper(TranslationMapper.detectLanguage());
@@ -126,6 +129,12 @@ const initMaterialComponents = (): void => {
   select.setSelectedIndex(allowedTimeRanges.indexOf(timeRange));
   select.listen('MDCSelect:change', () => selectedTimeRangeChanged(select.value));
 
+  // Initialize snackbar
+  const snackbarElement = document.querySelector('.mdc-snackbar');
+  if (snackbarElement) {
+    snackbar = new MDCSnackbar(snackbarElement);
+  }
+
   // Initialize text field for playlist name input
   const textFieldElement = document.querySelector('.mdc-text-field');
   if (textFieldElement) new MDCTextField(textFieldElement);
@@ -144,6 +153,13 @@ const initMaterialComponents = (): void => {
     dialog.listen('MDCDialog:closed', (event: any) => {
       if (event.detail.action === 'accept') handleCreatePlaylist();
     });
+  }
+};
+
+const showToast = (message: string): void => {
+  if (snackbar) {
+    snackbar.labelText = message;
+    snackbar.open();
   }
 };
 
@@ -328,7 +344,7 @@ const showCreatePlaylistDialog = async (dialog: MDCDialog): Promise<void> => {
     const allTracksForTimeRange = await topListsClient.getTopTracks(timeRange, 50, 0);
 
     if (!allTracksForTimeRange || allTracksForTimeRange.items.length === 0) {
-      alert(translationMapper.get('no-tracks-available'));
+      showToast(translationMapper.get('no-tracks-available'));
       dialog.close();
       return;
     }
@@ -353,7 +369,7 @@ const showCreatePlaylistDialog = async (dialog: MDCDialog): Promise<void> => {
     if (confirmButton) confirmButton.removeAttribute('disabled');
   } catch (error) {
     console.error('Error fetching tracks:', error);
-    alert(translationMapper.get('playlist-created-error'));
+    showToast(translationMapper.get('playlist-created-error'));
     dialog.close();
   }
 };
@@ -373,7 +389,7 @@ const handleCreatePlaylist = async (): Promise<void> => {
     .filter((id): id is string => !!id);
 
   if (selectedTrackIds.length === 0) {
-    alert(translationMapper.get('no-tracks-available'));
+    showToast(translationMapper.get('no-tracks-available'));
     return;
   }
 
@@ -404,8 +420,8 @@ const handleCreatePlaylist = async (): Promise<void> => {
   }
 
   if (result) {
-    alert(translationMapper.get('playlist-created-success'));
+    showToast(translationMapper.get('playlist-created-success'));
     // Open playlist in Spotify
     window.open(result.external_urls.spotify, '_blank');
-  } else alert(translationMapper.get('playlist-created-error'));
+  } else showToast(translationMapper.get('playlist-created-error'));
 };
