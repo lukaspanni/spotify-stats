@@ -196,13 +196,13 @@ const selectedTimeRangeChanged = async (newTimeRange: string): Promise<void> => 
 
 const addArtistCell = (index: number, artist: Artist): void => {
   // use the smallest image at least 300x300px, default order is widest first
-  const imageUrl = artist.images.reverse().find((i) => i.height >= 300)?.url;
+  const imageUrl = artist.images?.reverse().find((i) => i.height >= 300)?.url;
   if (!imageUrl) return;
   const image = document.createElement('img');
   image.src = imageUrl;
   const artistInfo = document.createElement('div');
   artistInfo.classList.add('info');
-  artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres.join(', ')}</h6>`;
+  artistInfo.innerHTML = `<h5>${index + '. ' + artist.name}</h5><h6>${artist.genres?.join(', ')}</h6>`;
 
   const artistItem = createCell(artist, image, artistInfo);
   (document.getElementById('top-artists-grid-inner') as HTMLDivElement).appendChild(artistItem);
