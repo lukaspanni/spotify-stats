@@ -11,12 +11,12 @@ const SpotifyTopListElementSchema = z.object({
   name: z.string(),
   external_urls: z.object({ spotify: z.string() }),
   id: z.string(),
-  popularity: z.number()
+  popularity: z.number().optional()
 });
 
 const ArtistSchema = SpotifyTopListElementSchema.extend({
-  genres: z.array(z.string()),
-  images: z.array(ImageSchema)
+  genres: z.array(z.string()).optional(),
+  images: z.array(ImageSchema).optional()
 });
 
 const TrackSchema = SpotifyTopListElementSchema.extend({
