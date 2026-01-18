@@ -16,6 +16,7 @@ type Env = {
   SPOTIFY_CLIENT_ID: string;
   SPOTIFY_CLIENT_SECRET: string;
   REDIRECT_URL: string;
+  CORS_ALLOWED_ORIGINS?: string;
 };
 
 type CookieOptions = {
@@ -74,18 +75,18 @@ export default {
 
 const handleRequest = async (request: Request, env: Env): Promise<Response> => {
   const url = new URL(request.url);
-  if (request.method === 'OPTIONS') return handleOptions(request);
+  if (request.method === 'OPTIONS') return handleOptions(request, env);
 
   if (url.pathname === '/login') return handleLogin(request, env);
   if (url.pathname === '/spotify-callback') return handleSpotifyCallback(request, env);
   if (url.pathname === '/refresh-token') return handleRefreshToken(request, env);
-  if (url.pathname.startsWith('/proxy-api')) return handleProxy(request);
+  if (url.pathname.startsWith('/proxy-api')) return handleProxy(request, env);
 
   return new Response('Not Found', { status: 404 });
 };
 
-const handleOptions = (request: Request): Response => {
-  const headers = buildCorsHeaders(request);
+const handleOptions = (request: Request, env: Env): Response => {
+  const headers = buildCorsHeaders(request, env);
   return new Response(null, { status: 204, headers });
 };
 
@@ -202,10 +203,11 @@ const handleRefreshToken = async (request: Request, env: Env): Promise<Response>
   }
 };
 
-const handleProxy = async (request: Request): Promise<Response> => {
+const handleProxy = async (request: Request, env: Env): Promise<Response> => {
   const url = new URL(request.url);
   const proxyPath = url.pathname.replace(/^\/proxy-api\/?/, '');
   if (!proxyPath) return new Response('Not Found', { status: 404 });
+  if (proxyPath.includes('://')) return new Response('Invalid proxy target', { status: 400 });
 
   const targetUrl = `${baseUrl}${proxyPath}${url.search}`;
   const headers = new Headers(request.headers);
@@ -224,7 +226,7 @@ const handleProxy = async (request: Request): Promise<Response> => {
   try {
     const response = await fetch(targetUrl, init);
     const responseHeaders = new Headers(response.headers);
-    applyCorsHeaders(request, responseHeaders);
+    applyCorsHeaders(request, env, responseHeaders);
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
@@ -232,7 +234,7 @@ const handleProxy = async (request: Request): Promise<Response> => {
     });
   } catch (err) {
     console.error('Proxy request failed', err);
-    const headers = buildCorsHeaders(request);
+    const headers = buildCorsHeaders(request, env);
     return new Response('Proxy request failed', { status: 502, headers });
   }
 };
@@ -272,7 +274,7 @@ const missingEnvResponse = (): Response => {
 
 const buildBasicAuth = (clientId: string, clientSecret: string): string => {
   const value = `${clientId}:${clientSecret}`;
-  return `Basic ${btoa(value)}`;
+  return `Basic ${encodeBase64(value)}`;
 };
 
 const redirectInvalidToken = (): Response => {
@@ -285,9 +287,9 @@ const buildRedirectResponse = (location: string, cookies: string[] = []): Respon
   return new Response(null, { status: 302, headers });
 };
 
-const buildCorsHeaders = (request: Request): Headers => {
+const buildCorsHeaders = (request: Request, env: Env): Headers => {
   const headers = new Headers();
-  const origin = resolveCorsOrigin(request);
+  const origin = resolveCorsOrigin(request, env);
   if (origin) {
     headers.set('Access-Control-Allow-Origin', origin);
     headers.set('Vary', 'Origin');
@@ -297,12 +299,12 @@ const buildCorsHeaders = (request: Request): Headers => {
   return headers;
 };
 
-const applyCorsHeaders = (request: Request, headers: Headers): void => {
+const applyCorsHeaders = (request: Request, env: Env, headers: Headers): void => {
   headers.delete('Access-Control-Allow-Origin');
   headers.delete('Access-Control-Allow-Methods');
   headers.delete('Access-Control-Allow-Headers');
   headers.delete('Vary');
-  const origin = resolveCorsOrigin(request);
+  const origin = resolveCorsOrigin(request, env);
   if (origin) {
     headers.set('Access-Control-Allow-Origin', origin);
     headers.set('Access-Control-Allow-Methods', corsAllowMethods);
@@ -311,15 +313,33 @@ const applyCorsHeaders = (request: Request, headers: Headers): void => {
   }
 };
 
-const resolveCorsOrigin = (request: Request): string | null => {
+const resolveCorsOrigin = (request: Request, env: Env): string | null => {
   const origin = request.headers.get('Origin');
   if (!origin) return null;
   const requestOrigin = new URL(request.url).origin;
-  return origin === requestOrigin ? origin : null;
+  const allowedOrigins = getAllowedCorsOrigins(env);
+  if (origin === requestOrigin) return origin;
+  return allowedOrigins.includes(origin) ? origin : null;
+};
+
+const getAllowedCorsOrigins = (env: Env): string[] => {
+  const rawOrigins = env.CORS_ALLOWED_ORIGINS;
+  if (!rawOrigins) return [];
+  return rawOrigins
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
 };
 
 const generateState = (): string => {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
+const encodeBase64 = (value: string): string => {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
 };

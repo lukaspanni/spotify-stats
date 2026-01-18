@@ -20,6 +20,7 @@ The backend routes are implemented for Cloudflare Workers and handle:
    - `npx wrangler secret put SPOTIFY_CLIENT_ID`
    - `npx wrangler secret put SPOTIFY_CLIENT_SECRET`
    - `npx wrangler secret put REDIRECT_URL`
+   - Optional: `npx wrangler secret put CORS_ALLOWED_ORIGINS` (comma-separated list of additional trusted origins)
 
    `REDIRECT_URL` must be the full URL to `/spotify-callback`, for example:
    `https://your-worker.example.com/spotify-callback`.
