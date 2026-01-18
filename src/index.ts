@@ -136,7 +136,7 @@ const handleSpotifyCallback = async (request: Request, env: Env): Promise<Respon
 
     const accessToken: AccessToken = {
       token: responseData.access_token,
-      expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
+      expires: buildExpiryTimestamp(responseData.expires_in),
       refreshToken: responseData.refresh_token
     };
 
@@ -187,7 +187,7 @@ const handleRefreshToken = async (request: Request, env: Env): Promise<Response>
 
     const refreshedToken: AccessToken = {
       token: responseData.access_token,
-      expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
+      expires: buildExpiryTimestamp(responseData.expires_in),
       refreshToken: responseData.refresh_token ?? accessToken.refreshToken
     };
 
@@ -337,6 +337,10 @@ const generateState = (): string => {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
+const buildExpiryTimestamp = (expiresIn: number): number => {
+  return Date.now() + expiresIn * 1000;
 };
 
 const encodeBase64 = (value: string): string => {
