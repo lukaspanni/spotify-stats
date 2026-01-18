@@ -49,6 +49,7 @@ export const parseCookies = (cookieHeader: string | null): Record<string, string
     try {
       cookies[name] = decodeURIComponent(value);
     } catch {
+      // If decoding fails, fall back to the raw cookie value.
       cookies[name] = value;
     }
     return cookies;
@@ -119,7 +120,7 @@ const handleSpotifyCallback = async (request: Request, env: Env): Promise<Respon
   const cookies = parseCookies(request.headers.get('Cookie'));
   const storedState = cookies[stateKey];
 
-  if (!code || !state || state !== storedState) return new Response('Error, state did not match', { status: 200 });
+  if (!code || !state || state !== storedState) return new Response('Error, state did not match', { status: 400 });
 
   const data = new URLSearchParams({
     code,
@@ -271,8 +272,7 @@ const missingEnvResponse = (): Response => {
 
 const buildBasicAuth = (clientId: string, clientSecret: string): string => {
   const value = `${clientId}:${clientSecret}`;
-  const encoded = typeof btoa === 'function' ? btoa(value) : Buffer.from(value, 'utf-8').toString('base64');
-  return `Basic ${encoded}`;
+  return `Basic ${btoa(value)}`;
 };
 
 const redirectInvalidToken = (): Response => {
@@ -287,17 +287,35 @@ const buildRedirectResponse = (location: string, cookies: string[] = []): Respon
 
 const buildCorsHeaders = (request: Request): Headers => {
   const headers = new Headers();
-  const origin = request.headers.get('Origin');
-  headers.set('Access-Control-Allow-Origin', origin ?? '*');
+  const origin = resolveCorsOrigin(request);
+  if (origin) {
+    headers.set('Access-Control-Allow-Origin', origin);
+    headers.set('Vary', 'Origin');
+  }
   headers.set('Access-Control-Allow-Methods', corsAllowMethods);
   headers.set('Access-Control-Allow-Headers', corsAllowHeaders);
   return headers;
 };
 
 const applyCorsHeaders = (request: Request, headers: Headers): void => {
-  headers.set('Access-Control-Allow-Origin', request.headers.get('Origin') ?? '*');
-  headers.set('Access-Control-Allow-Methods', corsAllowMethods);
-  headers.set('Access-Control-Allow-Headers', corsAllowHeaders);
+  headers.delete('Access-Control-Allow-Origin');
+  headers.delete('Access-Control-Allow-Methods');
+  headers.delete('Access-Control-Allow-Headers');
+  headers.delete('Vary');
+  const origin = resolveCorsOrigin(request);
+  if (origin) {
+    headers.set('Access-Control-Allow-Origin', origin);
+    headers.set('Access-Control-Allow-Methods', corsAllowMethods);
+    headers.set('Access-Control-Allow-Headers', corsAllowHeaders);
+    headers.append('Vary', 'Origin');
+  }
+};
+
+const resolveCorsOrigin = (request: Request): string | null => {
+  const origin = request.headers.get('Origin');
+  if (!origin) return null;
+  const requestOrigin = new URL(request.url).origin;
+  return origin === requestOrigin ? origin : null;
 };
 
 const generateState = (): string => {
