@@ -1,19 +1,3 @@
-import { randomBytes } from 'crypto';
-import express from 'express';
-import cors from 'cors';
-import axios, { AxiosRequestConfig } from 'axios';
-import cookieParser from 'cookie-parser';
-import { createProxyMiddleware } from 'http-proxy-middleware';
-
-// get environment variables
-const clientId: string = process.env.SPOTIFY_CLIENT_ID as string;
-const clientSecret: string = process.env.SPOTIFY_CLIENT_SECRET as string;
-const redirectUrl: string = process.env.REDIRECT_URL as string;
-const port: number = Number(process.env.PORT) || 8080;
-
-const scopes = 'user-read-private user-read-email user-top-read playlist-modify-public playlist-modify-private';
-const baseUrl = 'https://api.spotify.com/v1/';
-const accountBaseUrl = 'https://accounts.spotify.com/';
 type AccessToken = {
   token: string;
   expires: number;
@@ -28,151 +12,296 @@ type TokenResponse = {
   scope: string;
 };
 
-let accessToken: AccessToken | null = null;
+type Env = {
+  SPOTIFY_CLIENT_ID: string;
+  SPOTIFY_CLIENT_SECRET: string;
+  REDIRECT_URL: string;
+};
 
+type CookieOptions = {
+  maxAge?: number;
+  httpOnly?: boolean;
+  secure?: boolean;
+  sameSite?: 'Lax' | 'Strict' | 'None';
+};
+
+const scopes = 'user-read-private user-read-email user-top-read playlist-modify-public playlist-modify-private';
+const baseUrl = 'https://api.spotify.com/v1/';
+const accountBaseUrl = 'https://accounts.spotify.com/';
 const stateKey = 'auth-state';
-const app = express();
-app
-  .use(express.static(__dirname + '/public'))
-  .use(cors())
-  .use(cookieParser());
+const accessTokenCookie = 'accessToken';
+const accessTokenMaxAgeSeconds = 60 * 60 * 24 * 30;
+const corsAllowHeaders = 'Authorization,Content-Type';
+const corsAllowMethods = 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS';
 
-app.get('/login', (req, res) => {
-  console.info(new Date(), '/login', req.ip, req.headers['user-agent']);
-  const state = randomBytes(16).toString('hex');
-  // console.debug('setting state', state);
-  res.cookie(stateKey, state, { secure: false });
+export const parseCookies = (cookieHeader: string | null): Record<string, string> => {
+  if (!cookieHeader) return {};
+  return cookieHeader.split(';').reduce<Record<string, string>>((cookies, cookie) => {
+    const trimmed = cookie.trim();
+    if (!trimmed) return cookies;
+    const [name, ...valueParts] = trimmed.split('=');
+    if (!name) return cookies;
+    const value = valueParts.join('=');
+    if (!value) {
+      cookies[name] = '';
+      return cookies;
+    }
+    try {
+      cookies[name] = decodeURIComponent(value);
+    } catch {
+      cookies[name] = value;
+    }
+    return cookies;
+  }, {});
+};
 
+export const buildSetCookieHeader = (name: string, value: string, options: CookieOptions = {}): string => {
+  const encodedValue = encodeURIComponent(value);
+  const parts = [`${name}=${encodedValue}`, 'Path=/'];
+  if (options.maxAge !== undefined) parts.push(`Max-Age=${Math.floor(options.maxAge)}`);
+  if (options.httpOnly) parts.push('HttpOnly');
+  if (options.secure) parts.push('Secure');
+  if (options.sameSite) parts.push(`SameSite=${options.sameSite}`);
+  return parts.join('; ');
+};
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return handleRequest(request, env);
+  }
+};
+
+const handleRequest = async (request: Request, env: Env): Promise<Response> => {
+  const url = new URL(request.url);
+  if (request.method === 'OPTIONS') return handleOptions(request);
+
+  if (url.pathname === '/login') return handleLogin(request, env);
+  if (url.pathname === '/spotify-callback') return handleSpotifyCallback(request, env);
+  if (url.pathname === '/refresh-token') return handleRefreshToken(request, env);
+  if (url.pathname.startsWith('/proxy-api')) return handleProxy(request);
+
+  return new Response('Not Found', { status: 404 });
+};
+
+const handleOptions = (request: Request): Response => {
+  const headers = buildCorsHeaders(request);
+  return new Response(null, { status: 204, headers });
+};
+
+const handleLogin = (request: Request, env: Env): Response => {
+  if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 });
+  const config = getEnvConfig(env);
+  if (!config) return missingEnvResponse();
+
+  const state = generateState();
   const authQueryParams = new URLSearchParams({
     response_type: 'code',
-    client_id: clientId,
+    client_id: config.clientId,
     scope: scopes,
-    redirect_uri: redirectUrl,
-    state: state
+    redirect_uri: config.redirectUrl,
+    state
   });
-  // redirect to spotify auth page
-  res.redirect(accountBaseUrl + 'authorize?' + authQueryParams);
-});
 
-app.get('/spotify-callback', async (req, res) => {
-  const code = req.query.code || null;
-  const state = req.query.state || null;
-  const storedState = req.cookies ? req.cookies[stateKey] : null;
-  // console.debug('state from cookie', storedState);
+  const redirectUrl = `${accountBaseUrl}authorize?${authQueryParams}`;
+  const headers = new Headers({ Location: redirectUrl });
+  headers.append('Set-Cookie', buildSetCookieHeader(stateKey, state));
+  return new Response(null, { status: 302, headers });
+};
 
-  if (state === null || state !== storedState)
-    //state did not match
-    res.send('Error, state did not match');
-  else {
-    res.clearCookie(stateKey);
+const handleSpotifyCallback = async (request: Request, env: Env): Promise<Response> => {
+  if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 });
+  const config = getEnvConfig(env);
+  if (!config) return missingEnvResponse();
 
-    const data = new URLSearchParams({
-      code: code as string,
-      redirect_uri: redirectUrl,
-      grant_type: 'authorization_code'
-    });
-    const options = buildTokenRequestOptions(data);
-    //get token
-    try {
-      const response = await axios.request(options);
-      console.info(new Date(), '/spotify-callback token request status: ', response.status);
-      if (response.status !== 200) {
-        redirectInvalidToken(res);
-        return;
-      }
-      const responseData = response.data as TokenResponse;
-      //CAUTION: do not log access tokens! only availability status to debug api issues
-      console.info(
-        `got responseData, {accessTokenAvailable: ${responseData.access_token != null}, expires: ${
-          responseData.expires_in
-        }, refreshTokenAvailable: ${responseData.refresh_token != null}}`
-      );
-      accessToken = {
-        token: responseData.access_token,
-        expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
-        refreshToken: responseData.refresh_token
-      };
-      res.cookie('accessToken', JSON.stringify(accessToken), {
-        maxAge: 60 * 60 * 24 * 30 * 1000
-      });
+  const url = new URL(request.url);
+  const code = url.searchParams.get('code');
+  const state = url.searchParams.get('state');
+  const cookies = parseCookies(request.headers.get('Cookie'));
+  const storedState = cookies[stateKey];
 
-      res.redirect('/');
-    } catch (err) {
-      redirectInvalidToken(res);
-      return;
-    }
-  }
-});
+  if (!code || !state || state !== storedState) return new Response('Error, state did not match', { status: 200 });
 
-app.get('/refresh-token', async (req, res) => {
-  console.info(new Date(), '/refresh-token', req.ip, req.headers['user-agent']);
-  let accessToken: AccessToken | null = null;
+  const data = new URLSearchParams({
+    code,
+    redirect_uri: config.redirectUrl,
+    grant_type: 'authorization_code'
+  });
+
   try {
-    accessToken = JSON.parse(req.cookies.accessToken);
-    if (accessToken == null || accessToken.refreshToken === undefined) throw new Error('No refresh token provided');
+    const responseData = await requestToken(config, data);
+    if (!responseData) return redirectInvalidToken();
+
+    const accessToken: AccessToken = {
+      token: responseData.access_token,
+      expires: Date.now() + responseData.expires_in * 1000,
+      refreshToken: responseData.refresh_token
+    };
+
+    const headers = new Headers({ Location: '/' });
+    headers.append('Set-Cookie', buildSetCookieHeader(stateKey, '', { maxAge: 0 }));
+    headers.append(
+      'Set-Cookie',
+      buildSetCookieHeader(accessTokenCookie, JSON.stringify(accessToken), {
+        maxAge: accessTokenMaxAgeSeconds
+      })
+    );
+    return new Response(null, { status: 302, headers });
   } catch (err) {
-    console.error('Error', err);
-    res.cookie('accessToken', '{}');
-    res.redirect('/login');
-    return;
+    console.error('Error exchanging token', err);
+    return redirectInvalidToken();
   }
+};
+
+const handleRefreshToken = async (request: Request, env: Env): Promise<Response> => {
+  if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 });
+  const config = getEnvConfig(env);
+  if (!config) return missingEnvResponse();
+
+  const cookies = parseCookies(request.headers.get('Cookie'));
+  const storedToken = cookies[accessTokenCookie];
+  let accessToken: AccessToken | null = null;
+
+  try {
+    accessToken = storedToken ? (JSON.parse(storedToken) as AccessToken) : null;
+  } catch (err) {
+    console.error('Error parsing access token', err);
+  }
+
+  if (!accessToken?.refreshToken)
+    return buildRedirectResponse('/login', [buildSetCookieHeader(accessTokenCookie, '{}')]);
 
   const data = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: accessToken.refreshToken
   });
-  const options: AxiosRequestConfig = buildTokenRequestOptions(data);
+
   try {
-    const response = await axios.request(options);
-    const responseData = response.data as TokenResponse;
-    accessToken = {
+    const responseData = await requestToken(config, data);
+    if (!responseData)
+      return buildRedirectResponse('/#' + new URLSearchParams({ error: 'invalid_token' }), [
+        buildSetCookieHeader(accessTokenCookie, '{}')
+      ]);
+
+    const refreshedToken: AccessToken = {
       token: responseData.access_token,
-      expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
-      refreshToken: responseData.refresh_token ?? accessToken.refreshToken // use old refresh token if no new one provided
+      expires: Date.now() + responseData.expires_in * 1000,
+      refreshToken: responseData.refresh_token ?? accessToken.refreshToken
     };
-    res.cookie('accessToken', JSON.stringify(accessToken), {
-      maxAge: 60 * 60 * 24 * 30 * 1000
+
+    return buildRedirectResponse('/', [
+      buildSetCookieHeader(accessTokenCookie, JSON.stringify(refreshedToken), {
+        maxAge: accessTokenMaxAgeSeconds
+      })
+    ]);
+  } catch (err) {
+    console.error('Error refreshing token', err);
+    return buildRedirectResponse('/#' + new URLSearchParams({ error: 'invalid_token' }), [
+      buildSetCookieHeader(accessTokenCookie, '{}')
+    ]);
+  }
+};
+
+const handleProxy = async (request: Request): Promise<Response> => {
+  const url = new URL(request.url);
+  const proxyPath = url.pathname.replace(/^\/proxy-api\/?/, '');
+  if (!proxyPath) return new Response('Not Found', { status: 404 });
+
+  const targetUrl = `${baseUrl}${proxyPath}${url.search}`;
+  const headers = new Headers(request.headers);
+  const authorization = request.headers.get('authorization');
+  if (authorization) headers.set('Authorization', authorization);
+  headers.delete('host');
+  headers.delete('cookie');
+
+  const init: RequestInit = {
+    method: request.method,
+    headers,
+    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+    redirect: 'manual'
+  };
+
+  try {
+    const response = await fetch(targetUrl, init);
+    const responseHeaders = new Headers(response.headers);
+    applyCorsHeaders(request, responseHeaders);
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders
     });
   } catch (err) {
-    res.cookie('accessToken', '{}');
-    redirectInvalidToken(res);
-    return;
+    console.error('Proxy request failed', err);
+    const headers = buildCorsHeaders(request);
+    return new Response('Proxy request failed', { status: 502, headers });
   }
-
-  res.redirect('/');
-});
-
-app.use(
-  '/proxy-api',
-  createProxyMiddleware({
-    target: baseUrl,
-    changeOrigin: true,
-    on: {
-      proxyReq: (proxyReq, req) => {
-        proxyReq.setHeader('Authorization', req.headers.authorization ?? '');
-      }
-    }
-  })
-);
-
-app.listen(port);
-console.log('Listen on ', port);
-
-const redirectInvalidToken = (res: any): void => {
-  res.redirect(
-    '/#' +
-      new URLSearchParams({
-        error: 'invalid_token'
-      })
-  );
 };
-const buildTokenRequestOptions = (data: URLSearchParams): AxiosRequestConfig<any> => {
-  return {
+
+const requestToken = async (config: EnvConfig, data: URLSearchParams): Promise<TokenResponse | null> => {
+  const response = await fetch(`${accountBaseUrl}api/token`, {
     method: 'POST',
-    url: accountBaseUrl + 'api/token',
-    data: data,
+    body: data.toString(),
     headers: {
-      Authorization: 'Basic ' + Buffer.from(clientId + ':' + clientSecret).toString('base64')
+      Authorization: buildBasicAuth(config.clientId, config.clientSecret),
+      'Content-Type': 'application/x-www-form-urlencoded'
     }
+  });
+
+  if (!response.ok) return null;
+  return (await response.json()) as TokenResponse;
+};
+
+type EnvConfig = {
+  clientId: string;
+  clientSecret: string;
+  redirectUrl: string;
+};
+
+const getEnvConfig = (env: Env): EnvConfig | null => {
+  if (!env.SPOTIFY_CLIENT_ID || !env.SPOTIFY_CLIENT_SECRET || !env.REDIRECT_URL) return null;
+  return {
+    clientId: env.SPOTIFY_CLIENT_ID,
+    clientSecret: env.SPOTIFY_CLIENT_SECRET,
+    redirectUrl: env.REDIRECT_URL
   };
+};
+
+const missingEnvResponse = (): Response => {
+  return new Response('Missing Spotify environment variables.', { status: 500 });
+};
+
+const buildBasicAuth = (clientId: string, clientSecret: string): string => {
+  const value = `${clientId}:${clientSecret}`;
+  const encoded = typeof btoa === 'function' ? btoa(value) : Buffer.from(value, 'utf-8').toString('base64');
+  return `Basic ${encoded}`;
+};
+
+const redirectInvalidToken = (): Response => {
+  return buildRedirectResponse('/#' + new URLSearchParams({ error: 'invalid_token' }));
+};
+
+const buildRedirectResponse = (location: string, cookies: string[] = []): Response => {
+  const headers = new Headers({ Location: location });
+  cookies.forEach((cookie) => headers.append('Set-Cookie', cookie));
+  return new Response(null, { status: 302, headers });
+};
+
+const buildCorsHeaders = (request: Request): Headers => {
+  const headers = new Headers();
+  const origin = request.headers.get('Origin');
+  headers.set('Access-Control-Allow-Origin', origin ?? '*');
+  headers.set('Access-Control-Allow-Methods', corsAllowMethods);
+  headers.set('Access-Control-Allow-Headers', corsAllowHeaders);
+  return headers;
+};
+
+const applyCorsHeaders = (request: Request, headers: Headers): void => {
+  headers.set('Access-Control-Allow-Origin', request.headers.get('Origin') ?? '*');
+  headers.set('Access-Control-Allow-Methods', corsAllowMethods);
+  headers.set('Access-Control-Allow-Headers', corsAllowHeaders);
+};
+
+const generateState = (): string => {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 };
