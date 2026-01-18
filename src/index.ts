@@ -31,9 +31,10 @@ const baseUrl = 'https://api.spotify.com/v1/';
 const accountBaseUrl = 'https://accounts.spotify.com/';
 const stateKey = 'auth-state';
 const accessTokenCookie = 'accessToken';
+const emptyAccessTokenCookieValue = '{}';
 const accessTokenMaxAgeSeconds = 60 * 60 * 24 * 30;
-const corsAllowHeaders = 'Authorization,Content-Type';
-const corsAllowMethods = 'GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS';
+const corsAllowHeaders = ['Authorization', 'Content-Type'].join(',');
+const corsAllowMethods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'].join(',');
 
 export const parseCookies = (cookieHeader: string | null): Record<string, string> => {
   if (!cookieHeader) return {};
@@ -135,7 +136,7 @@ const handleSpotifyCallback = async (request: Request, env: Env): Promise<Respon
 
     const accessToken: AccessToken = {
       token: responseData.access_token,
-      expires: Date.now() + responseData.expires_in * 1000,
+      expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
       refreshToken: responseData.refresh_token
     };
 
@@ -170,7 +171,7 @@ const handleRefreshToken = async (request: Request, env: Env): Promise<Response>
   }
 
   if (!accessToken?.refreshToken)
-    return buildRedirectResponse('/login', [buildSetCookieHeader(accessTokenCookie, '{}')]);
+    return buildRedirectResponse('/login', [buildSetCookieHeader(accessTokenCookie, emptyAccessTokenCookieValue)]);
 
   const data = new URLSearchParams({
     grant_type: 'refresh_token',
@@ -181,12 +182,12 @@ const handleRefreshToken = async (request: Request, env: Env): Promise<Response>
     const responseData = await requestToken(config, data);
     if (!responseData)
       return buildRedirectResponse('/#' + new URLSearchParams({ error: 'invalid_token' }), [
-        buildSetCookieHeader(accessTokenCookie, '{}')
+        buildSetCookieHeader(accessTokenCookie, emptyAccessTokenCookieValue)
       ]);
 
     const refreshedToken: AccessToken = {
       token: responseData.access_token,
-      expires: Date.now() + responseData.expires_in * 1000,
+      expires: new Date().setSeconds(new Date().getSeconds() + responseData.expires_in),
       refreshToken: responseData.refresh_token ?? accessToken.refreshToken
     };
 
@@ -198,7 +199,7 @@ const handleRefreshToken = async (request: Request, env: Env): Promise<Response>
   } catch (err) {
     console.error('Error refreshing token', err);
     return buildRedirectResponse('/#' + new URLSearchParams({ error: 'invalid_token' }), [
-      buildSetCookieHeader(accessTokenCookie, '{}')
+      buildSetCookieHeader(accessTokenCookie, emptyAccessTokenCookieValue)
     ]);
   }
 };
@@ -207,7 +208,8 @@ const handleProxy = async (request: Request, env: Env): Promise<Response> => {
   const url = new URL(request.url);
   const proxyPath = url.pathname.replace(/^\/proxy-api\/?/, '');
   if (!proxyPath) return new Response('Not Found', { status: 404 });
-  if (proxyPath.includes('://')) return new Response('Invalid proxy target', { status: 400 });
+  if (proxyPath.includes('://') || proxyPath.includes('..') || proxyPath.startsWith('/'))
+    return new Response('Invalid proxy target', { status: 400 });
 
   const targetUrl = `${baseUrl}${proxyPath}${url.search}`;
   const headers = new Headers(request.headers);
@@ -338,8 +340,14 @@ const generateState = (): string => {
 };
 
 const encodeBase64 = (value: string): string => {
+  if (isAscii(value)) return btoa(value);
   const bytes = new TextEncoder().encode(value);
   let binary = '';
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary);
+};
+
+const isAscii = (value: string): boolean => {
+  for (let index = 0; index < value.length; index += 1) if (value.charCodeAt(index) > 0x7f) return false;
+  return true;
 };
