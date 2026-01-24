@@ -1,0 +1,9 @@
+export const scopes = 'user-read-private user-read-email user-top-read playlist-modify-public playlist-modify-private';
+export const baseUrl = 'https://api.spotify.com/v1/';
+export const accountBaseUrl = 'https://accounts.spotify.com/';
+export const stateKey = 'auth-state';
+export const accessTokenCookie = 'accessToken';
+export const emptyAccessTokenCookieValue = '{}';
+export const accessTokenMaxAgeSeconds = 60 * 60 * 24 * 30;
+export const corsAllowHeaders = ['Authorization', 'Content-Type'].join(',');
+export const corsAllowMethods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'].join(',');
