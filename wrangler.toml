@@ -1,3 +1,6 @@
 name = "spotify-stats"
 main = "src/index.ts"
 compatibility_date = "2026-01-18"
+
+[assets]
+directory = "./dist/public"

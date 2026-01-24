@@ -13,6 +13,7 @@ export type Env = {
   SPOTIFY_CLIENT_SECRET: string;
   REDIRECT_URL: string;
   CORS_ALLOWED_ORIGINS?: string;
+  ASSETS: Fetcher;
 };
 
 export type CookieOptions = {

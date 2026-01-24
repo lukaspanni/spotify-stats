@@ -16,7 +16,10 @@ const handleRequest = async (request: Request, env: Env): Promise<Response> => {
   if (url.pathname === '/refresh-token') return handleRefreshToken(request, env);
   if (url.pathname.startsWith('/proxy-api')) return handleProxy(request, env);
 
-  return new Response('Not Found', { status: 404 });
+  // Serve static assets from the frontend bundle
+  // Cloudflare Workers with assets will automatically serve files from the assets directory
+  // If no asset matches, this code runs and we can serve the SPA index.html
+  return env.ASSETS.fetch(request);
 };
 
 // Export for testing
