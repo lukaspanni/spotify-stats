@@ -32,18 +32,26 @@ export function App(): React.JSX.Element {
       ?.split('=')[1];
 
     if (accessTokenCookie) {
-      const accessToken = JSON.parse(decodeURIComponent(accessTokenCookie));
-      if (accessToken?.token) {
-        const now = new Date().getTime();
-        if (accessToken.expires > now) {
-          setIsAuthorized(true);
-          try {
-            const client = new TopListsClientFactory().getTopListsClient(accessToken.token);
-            setTopListsClient(client);
-          } catch (e) {
-            console.error('Failed to initialize client:', e);
+      try {
+        const accessToken = JSON.parse(decodeURIComponent(accessTokenCookie));
+        if (accessToken?.token) {
+          const now = new Date().getTime();
+          if (accessToken.expires > now) {
+            setIsAuthorized(true);
+            try {
+              const client = new TopListsClientFactory().getTopListsClient(accessToken.token);
+              setTopListsClient(client);
+            } catch (e) {
+              console.error('Failed to initialize client:', e);
+            }
+          } else {
+            window.location.href = '/refresh-token';
           }
-        } else window.location.href = '/refresh-token';
+        }
+      } catch (e) {
+        console.error('Failed to parse accessToken cookie:', e);
+        // Optionally clear invalid cookie to avoid repeated errors
+        document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
       }
     }
 
