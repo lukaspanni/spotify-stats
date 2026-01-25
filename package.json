@@ -30,26 +30,20 @@
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "8.53.1",
     "@typescript-eslint/parser": "8.53.1",
+    "@vitejs/plugin-react": "^5.1.2",
     "autoprefixer": "10.4.23",
-    "css-loader": "7.1.2",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
-    "extract-loader": "^5.1.0",
-    "file-loader": "6.2.0",
-    "html-webpack-plugin": "5.6.6",
     "jest": "30.2.0",
     "postcss": "^8.5.6",
-    "postcss-loader": "8.2.0",
     "prettier": "3.8.1",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "29.4.6",
-    "ts-loader": "9.5.4",
     "typescript": "5.9.3",
-    "webpack": "5.104.1",
-    "webpack-cli": "6.0.1",
-    "webpack-dev-server": "5.2.3"
+    "vite": "^7.3.1",
+    "vite-plugin-static-copy": "^3.1.6"
   },
   "dependencies": {
     "axios": "1.13.2",
@@ -69,9 +63,11 @@
     "lint": "eslint",
     "test": "jest --ci",
     "format": "prettier --config .prettierrc '**/*.{ts,js,html,scss,css}' --write",
-    "build:frontend": "webpack",
-    "build:frontend-debug": "webpack --mode development",
+    "build:frontend": "vite build",
+    "build:frontend-debug": "vite build --mode development",
     "dev": "pnpm run build:frontend && wrangler dev",
+    "dev:frontend": "vite",
+    "preview": "vite preview",
     "deploy": "pnpm run build:frontend && wrangler deploy"
   }
 }

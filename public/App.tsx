@@ -31,7 +31,7 @@ export function App(): React.JSX.Element {
       .find((c) => c.startsWith('accessToken='))
       ?.split('=')[1];
 
-    if (accessTokenCookie) {
+    if (accessTokenCookie)
       try {
         const accessToken = JSON.parse(decodeURIComponent(accessTokenCookie));
         if (accessToken?.token) {
@@ -44,16 +44,13 @@ export function App(): React.JSX.Element {
             } catch (e) {
               console.error('Failed to initialize client:', e);
             }
-          } else {
-            window.location.href = '/refresh-token';
-          }
+          } else window.location.href = '/refresh-token';
         }
       } catch (e) {
         console.error('Failed to parse accessToken cookie:', e);
         // Optionally clear invalid cookie to avoid repeated errors
         document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
       }
-    }
 
     // Get time range from URL
     const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
