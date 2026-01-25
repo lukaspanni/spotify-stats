@@ -37,11 +37,6 @@ module.exports = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
-        },
-        spotify: {
-          DEFAULT: '#1DB954',
-          dark: '#1ed760',
-          light: '#1aa34a'
         }
       },
       borderRadius: {
