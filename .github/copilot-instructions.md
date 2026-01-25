@@ -56,7 +56,8 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 
 ### Testing
 
-- Tests are located alongside source code in `/src/test` and `/public/test`
+- Backend tests are located in `/src/test`
+- Frontend tests are located in `/public/test`
 - Run tests with `pnpm run test`
 - Tests use Jest with ts-jest preset
 - Test environment is Node.js
@@ -142,9 +143,10 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 - Check for security vulnerabilities regularly
 - Core dependencies:
   - `axios` for HTTP requests
-  - `express` types (for type compatibility)
   - `zod` for validation
   - `react` and `react-dom` for UI
+  - `class-variance-authority`, `clsx`, `tailwind-merge` for styling utilities
+  - `lucide-react` for icons
 
 ## Deployment
 
