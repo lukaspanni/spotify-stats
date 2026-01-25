@@ -5,7 +5,8 @@ describe('handlers', () => {
   const createEnv = (): Env => ({
     SPOTIFY_CLIENT_ID: 'test-client-id',
     SPOTIFY_CLIENT_SECRET: 'test-client-secret',
-    REDIRECT_URL: 'https://example.com/callback'
+    REDIRECT_URL: 'https://example.com/callback',
+    ASSETS: {} as Fetcher
   });
 
   const createRequest = (url: string, method: string = 'GET', origin?: string): Request => {

@@ -6,7 +6,8 @@ describe('cors', () => {
     SPOTIFY_CLIENT_ID: 'id',
     SPOTIFY_CLIENT_SECRET: 'secret',
     REDIRECT_URL: 'url',
-    CORS_ALLOWED_ORIGINS: allowedOrigins
+    CORS_ALLOWED_ORIGINS: allowedOrigins,
+    ASSETS: {} as Fetcher
   });
 
   const createRequest = (url: string, origin?: string): Request => {

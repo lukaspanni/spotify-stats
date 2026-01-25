@@ -7,7 +7,8 @@ describe('config', () => {
       const env: Env = {
         SPOTIFY_CLIENT_ID: 'client-id',
         SPOTIFY_CLIENT_SECRET: 'client-secret',
-        REDIRECT_URL: 'https://example.com/callback'
+        REDIRECT_URL: 'https://example.com/callback',
+        ASSETS: {} as Fetcher
       };
 
       const config = getEnvConfig(env);
@@ -46,7 +47,12 @@ describe('config', () => {
 
   describe('getAllowedCorsOrigins', () => {
     it('returns empty array when CORS_ALLOWED_ORIGINS is not set', () => {
-      const env: Env = { SPOTIFY_CLIENT_ID: 'id', SPOTIFY_CLIENT_SECRET: 'secret', REDIRECT_URL: 'url' };
+      const env: Env = {
+        SPOTIFY_CLIENT_ID: 'id',
+        SPOTIFY_CLIENT_SECRET: 'secret',
+        REDIRECT_URL: 'url',
+        ASSETS: {} as Fetcher
+      };
 
       const origins = getAllowedCorsOrigins(env);
 
@@ -58,7 +64,8 @@ describe('config', () => {
         SPOTIFY_CLIENT_ID: 'id',
         SPOTIFY_CLIENT_SECRET: 'secret',
         REDIRECT_URL: 'url',
-        CORS_ALLOWED_ORIGINS: ''
+        CORS_ALLOWED_ORIGINS: '',
+        ASSETS: {} as Fetcher
       };
 
       const origins = getAllowedCorsOrigins(env);
@@ -71,7 +78,8 @@ describe('config', () => {
         SPOTIFY_CLIENT_ID: 'id',
         SPOTIFY_CLIENT_SECRET: 'secret',
         REDIRECT_URL: 'url',
-        CORS_ALLOWED_ORIGINS: 'https://example.com'
+        CORS_ALLOWED_ORIGINS: 'https://example.com',
+        ASSETS: {} as Fetcher
       };
 
       const origins = getAllowedCorsOrigins(env);
@@ -84,7 +92,8 @@ describe('config', () => {
         SPOTIFY_CLIENT_ID: 'id',
         SPOTIFY_CLIENT_SECRET: 'secret',
         REDIRECT_URL: 'url',
-        CORS_ALLOWED_ORIGINS: 'https://example.com,https://test.com,https://app.example.com'
+        CORS_ALLOWED_ORIGINS: 'https://example.com,https://test.com,https://app.example.com',
+        ASSETS: {} as Fetcher
       };
 
       const origins = getAllowedCorsOrigins(env);
@@ -97,7 +106,8 @@ describe('config', () => {
         SPOTIFY_CLIENT_ID: 'id',
         SPOTIFY_CLIENT_SECRET: 'secret',
         REDIRECT_URL: 'url',
-        CORS_ALLOWED_ORIGINS: ' https://example.com , https://test.com '
+        CORS_ALLOWED_ORIGINS: ' https://example.com , https://test.com ',
+        ASSETS: {} as Fetcher
       };
 
       const origins = getAllowedCorsOrigins(env);
@@ -110,7 +120,8 @@ describe('config', () => {
         SPOTIFY_CLIENT_ID: 'id',
         SPOTIFY_CLIENT_SECRET: 'secret',
         REDIRECT_URL: 'url',
-        CORS_ALLOWED_ORIGINS: 'https://example.com,,https://test.com'
+        CORS_ALLOWED_ORIGINS: 'https://example.com,,https://test.com',
+        ASSETS: {} as Fetcher
       };
 
       const origins = getAllowedCorsOrigins(env);
