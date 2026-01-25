@@ -5,7 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = [
   {
     mode: 'production',
-    entry: ['./public/style/index.scss', './public/index.tsx'],
+    entry: ['./public/style/index.css', './public/index.tsx'],
     devtool: 'source-map',
     output: {
       filename: 'bundle.js',
@@ -32,7 +32,7 @@ module.exports = [
           exclude: /node_modules/
         },
         {
-          test: /\.scss$/,
+          test: /\.css$/,
           use: [
             {
               loader: 'file-loader',
@@ -46,17 +46,8 @@ module.exports = [
               loader: 'postcss-loader',
               options: {
                 postcssOptions: {
-                  plugins: [autoprefixer()]
+                  plugins: [require('@tailwindcss/postcss'), require('autoprefixer')]
                 }
-              }
-            },
-            {
-              loader: 'sass-loader',
-              options: {
-                sassOptions: {
-                  includePaths: ['node_modules']
-                },
-                implementation: require('sass')
               }
             }
           ]
