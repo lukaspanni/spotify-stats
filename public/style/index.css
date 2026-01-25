@@ -1,5 +1,11 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-spotify: #1db954;
+  --color-spotify-dark: #1ed760;
+  --color-spotify-light: #1aa34a;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
