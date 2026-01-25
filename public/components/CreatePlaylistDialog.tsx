@@ -106,7 +106,7 @@ export function CreatePlaylistDialog({
       const result = await client.createPlaylist(playlistName, trackUris);
 
       if (result) {
-        window.open(result.external_urls.spotify, '_blank');
+        window.open(result.external_urls.spotify, '_blank', 'noopener,noreferrer');
         onOpenChange(false);
       }
     } catch (error) {
