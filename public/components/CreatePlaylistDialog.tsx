@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from './ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -23,7 +16,13 @@ interface CreatePlaylistDialogProps {
   client: TopListsClient;
 }
 
-export function CreatePlaylistDialog({ open, onOpenChange, translator, timeRange, client }: CreatePlaylistDialogProps) {
+export function CreatePlaylistDialog({
+  open,
+  onOpenChange,
+  translator,
+  timeRange,
+  client
+}: CreatePlaylistDialogProps): React.JSX.Element {
   const [playlistName, setPlaylistName] = useState('');
   const [tracks, setTracks] = useState<Track[]>([]);
   const [selectedTrackIds, setSelectedTrackIds] = useState<Set<string>>(new Set());
@@ -70,12 +69,10 @@ export function CreatePlaylistDialog({ open, onOpenChange, translator, timeRange
   }, [translator, timeRange]);
 
   useEffect(() => {
-    if (open) {
-      fetchTracks();
-    }
+    if (open) fetchTracks();
   }, [open, timeRange]);
 
-  const fetchTracks = async () => {
+  const fetchTracks = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const result = await client.getTopTracks(timeRange, 50, 0);
@@ -90,19 +87,17 @@ export function CreatePlaylistDialog({ open, onOpenChange, translator, timeRange
     }
   };
 
-  const toggleTrack = (trackId: string) => {
+  const toggleTrack = (trackId: string): void => {
     setSelectedTrackIds((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(trackId)) {
-        newSet.delete(trackId);
-      } else {
-        newSet.add(trackId);
-      }
+      if (newSet.has(trackId)) newSet.delete(trackId);
+      else newSet.add(trackId);
+
       return newSet;
     });
   };
 
-  const handleCreate = async () => {
+  const handleCreate = async (): Promise<void> => {
     if (selectedTrackIds.size === 0) return;
 
     setIsCreating(true);
@@ -170,11 +165,7 @@ export function CreatePlaylistDialog({ open, onOpenChange, translator, timeRange
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isCreating}>
             {texts.cancel}
           </Button>
-          <Button
-            variant="spotify"
-            onClick={handleCreate}
-            disabled={isCreating || selectedTrackIds.size === 0}
-          >
+          <Button variant="spotify" onClick={handleCreate} disabled={isCreating || selectedTrackIds.size === 0}>
             {isCreating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

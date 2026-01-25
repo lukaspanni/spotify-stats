@@ -20,7 +20,7 @@ export function TopArtistsSection({
   hasMore,
   onLoadMore,
   translator
-}: TopArtistsSectionProps) {
+}: TopArtistsSectionProps): React.JSX.Element {
   const [header, setHeader] = useState('Top Artists');
   const [loadMoreText, setLoadMoreText] = useState('Load More');
 

@@ -9,7 +9,7 @@ interface TimeRangeSelectorProps {
   translator: TranslationMapper;
 }
 
-export function TimeRangeSelector({ timeRange, onChange, translator }: TimeRangeSelectorProps) {
+export function TimeRangeSelector({ timeRange, onChange, translator }: TimeRangeSelectorProps): React.JSX.Element {
   const [label, setLabel] = useState('Time Span');
   const [options, setOptions] = useState({
     long_term: 'All Time',

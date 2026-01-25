@@ -13,7 +13,12 @@ interface TopListsViewProps {
   onTimeRangeChange: (timeRange: TimeRange) => void;
 }
 
-export function TopListsView({ client, translator, initialTimeRange, onTimeRangeChange }: TopListsViewProps) {
+export function TopListsView({
+  client,
+  translator,
+  initialTimeRange,
+  onTimeRangeChange
+}: TopListsViewProps): React.JSX.Element {
   const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange);
   const [topTracks, setTopTracks] = useState<Track[]>([]);
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
@@ -26,7 +31,7 @@ export function TopListsView({ client, translator, initialTimeRange, onTimeRange
     fetchTopLists();
   }, [timeRange]);
 
-  const fetchTopLists = async () => {
+  const fetchTopLists = async (): Promise<void> => {
     tracksPagination.reset(0, 10, 0);
     artistsPagination.reset(0, 10, 0);
     setTopTracks([]);
@@ -34,7 +39,7 @@ export function TopListsView({ client, translator, initialTimeRange, onTimeRange
     await Promise.all([fetchTopTracks(), fetchTopArtists()]);
   };
 
-  const fetchTopTracks = async () => {
+  const fetchTopTracks = async (): Promise<void> => {
     setIsLoadingTracks(true);
     try {
       const result = await client.getTopTracks(
@@ -56,7 +61,7 @@ export function TopListsView({ client, translator, initialTimeRange, onTimeRange
     }
   };
 
-  const fetchTopArtists = async () => {
+  const fetchTopArtists = async (): Promise<void> => {
     setIsLoadingArtists(true);
     try {
       const result = await client.getTopArtists(
@@ -78,18 +83,18 @@ export function TopListsView({ client, translator, initialTimeRange, onTimeRange
     }
   };
 
-  const handleTimeRangeChange = (newTimeRange: TimeRange) => {
+  const handleTimeRangeChange = (newTimeRange: TimeRange): void => {
     setTimeRange(newTimeRange);
     onTimeRangeChange(newTimeRange);
     history.pushState(null, '', `${window.location.pathname}?time_range=${newTimeRange}`);
   };
 
-  const handleLoadMoreTracks = () => {
+  const handleLoadMoreTracks = (): void => {
     tracksPagination.updateOffset();
     fetchTopTracks();
   };
 
-  const handleLoadMoreArtists = () => {
+  const handleLoadMoreArtists = (): void => {
     artistsPagination.updateOffset();
     fetchTopArtists();
   };

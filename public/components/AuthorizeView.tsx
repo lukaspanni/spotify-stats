@@ -8,13 +8,15 @@ interface AuthorizeViewProps {
   translator: TranslationMapper | null;
 }
 
-export function AuthorizeView({ translator }: AuthorizeViewProps) {
+export function AuthorizeView({ translator }: AuthorizeViewProps): React.JSX.Element {
   const [heading, setHeading] = React.useState('Your top tracks and artists on Spotify!');
-  const [subheading, setSubheading] = React.useState('Authorize your Spotify account to see your top tracks and artists.');
+  const [subheading, setSubheading] = React.useState(
+    'Authorize your Spotify account to see your top tracks and artists.'
+  );
   const [buttonText, setButtonText] = React.useState('Authorize');
 
   React.useEffect(() => {
-    if (translator) {
+    if (translator)
       translator.initializedPromise.then(() => {
         try {
           setHeading(translator.get('heading-unauthorized'));
@@ -24,7 +26,6 @@ export function AuthorizeView({ translator }: AuthorizeViewProps) {
           console.warn('Translation error:', e);
         }
       });
-    }
   }, [translator]);
 
   return (

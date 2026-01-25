@@ -7,7 +7,7 @@ import { TopListsClient, TimeRange } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { TranslationMapper } from './translation-mapper';
 
-export function App() {
+export function App(): React.JSX.Element {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [topListsClient, setTopListsClient] = useState<TopListsClient | null>(null);
   const [translationMapper, setTranslationMapper] = useState<TranslationMapper | null>(null);
@@ -18,9 +18,7 @@ export function App() {
     // Check for dark mode preference
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     setIsDarkMode(prefersDark);
-    if (prefersDark) {
-      document.documentElement.classList.add('dark');
-    }
+    if (prefersDark) document.documentElement.classList.add('dark');
 
     // Initialize translation mapper
     const mapper = new TranslationMapper(TranslationMapper.detectLanguage());
@@ -45,20 +43,17 @@ export function App() {
           } catch (e) {
             console.error('Failed to initialize client:', e);
           }
-        } else {
-          window.location.href = '/refresh-token';
-        }
+        } else window.location.href = '/refresh-token';
       }
     }
 
     // Get time range from URL
     const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
-    if (queryTimeRange && ['long_term', 'medium_term', 'short_term'].includes(queryTimeRange)) {
+    if (queryTimeRange && ['long_term', 'medium_term', 'short_term'].includes(queryTimeRange))
       setTimeRange(queryTimeRange as TimeRange);
-    }
   }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = (): void => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
   };

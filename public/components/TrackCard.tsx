@@ -8,17 +8,12 @@ interface TrackCardProps {
   index: number;
 }
 
-export function TrackCard({ track, index }: TrackCardProps) {
+export function TrackCard({ track, index }: TrackCardProps): React.JSX.Element {
   const imageUrl = track.album.images.find((i) => i.height === 300)?.url || track.album.images[0]?.url;
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-      <a
-        href={track.external_urls.spotify}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
+      <a href={track.external_urls.spotify} target="_blank" rel="noopener noreferrer" className="block">
         <div className="relative aspect-square overflow-hidden">
           {imageUrl && (
             <img
@@ -38,9 +33,7 @@ export function TrackCard({ track, index }: TrackCardProps) {
           <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-spotify transition-colors">
             {track.name}
           </h3>
-          <p className="text-xs text-muted-foreground line-clamp-1">
-            {track.artists.map((a) => a.name).join(', ')}
-          </p>
+          <p className="text-xs text-muted-foreground line-clamp-1">{track.artists.map((a) => a.name).join(', ')}</p>
         </CardContent>
       </a>
     </Card>

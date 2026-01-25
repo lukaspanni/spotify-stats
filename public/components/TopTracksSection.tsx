@@ -24,7 +24,7 @@ export function TopTracksSection({
   translator,
   timeRange,
   client
-}: TopTracksSectionProps) {
+}: TopTracksSectionProps): React.JSX.Element {
   const [header, setHeader] = useState('Top Tracks');
   const [loadMoreText, setLoadMoreText] = useState('Load More');
   const [createPlaylistText, setCreatePlaylistText] = useState('Create Playlist');

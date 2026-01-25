@@ -8,17 +8,12 @@ interface ArtistCardProps {
   index: number;
 }
 
-export function ArtistCard({ artist, index }: ArtistCardProps) {
+export function ArtistCard({ artist, index }: ArtistCardProps): React.JSX.Element {
   const imageUrl = artist.images?.reverse().find((i) => i.height >= 300)?.url || artist.images?.[0]?.url;
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-      <a
-        href={artist.external_urls.spotify}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
+      <a href={artist.external_urls.spotify} target="_blank" rel="noopener noreferrer" className="block">
         <div className="relative aspect-square overflow-hidden">
           {imageUrl && (
             <img
