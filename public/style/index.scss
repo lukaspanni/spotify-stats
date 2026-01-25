@@ -1,151 +1,68 @@
-@use '@material/typography/mdc-typography';
-@use '@material/layout-grid/mdc-layout-grid';
-@use '@material/list/mdc-list';
-@use '@material/menu-surface/mdc-menu-surface';
-@use '@material/menu/mdc-menu';
-@use '@material/select';
-@use '@material/select/styles' as select-styles;
-@use '@material/button/styles' as button-styles;
-@use '@material/button';
-@use '@material/dialog/mdc-dialog';
-@use '@material/textfield/mdc-text-field';
-@use '@material/snackbar/mdc-snackbar';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  font-family: sans-serif;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-}
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
 
-.main-content {
-  padding: 16px;
-}
-
-.hidden {
-  display: none;
-}
-
-#login-button {
-  @include button.container-fill-color(#a1c349);
-  @include button.ink-color(#000);
-
-  width: 100%;
-  margin-top: 2%;
-  margin-bottom: 8%;
-  padding: 3em;
-  font-size: large;
-  font-weight: bold;
-
-  a {
-    text-decoration: none;
-    color: white;
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
-.load-more-button {
-  @include button.container-fill-color(#99e2f5);
-  @include button.ink-color(rgb(63, 63, 63));
-
-  width: 100%;
-  margin-top: 2%;
-  font-weight: bold;
-}
-
-#create-playlist-button {
-  @include button.container-fill-color(#1db954);
-  @include button.ink-color(white);
-
-  width: 100%;
-  margin-top: 1em;
-  font-weight: bold;
-}
-
-#time-range-select {
-  margin-top: 1em;
-  width: 100%;
-
-  ul {
-    padding-bottom: 0;
-
-    li {
-      padding: 1em 1em;
-    }
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
   }
 }
 
-.cell {
-  box-sizing: border-box;
-  background-color: #f3f3f3;
-  padding: 16px;
-  border-radius: 5px;
-  margin-bottom: 0.5em;
-
-  img {
-    border-radius: 5px;
-    // width: 300px;
-    // object-fit: none;
-    max-width: 100%;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .spotify-link {
-    text-decoration: none;
-    color: #000;
-  }
-
-  .info {
-    margin-top: 0.25em;
-
-    h5 {
-      @extend .mdc-typography--headline5;
-      margin-top: 0;
-      margin-bottom: 0.1em;
-      text-decoration: underline;
-    }
-
-    h6 {
-      @extend .mdc-typography--subtitle2;
-      margin: 0;
-      opacity: 0.6;
-    }
-  }
-}
-
-.error-message {
-  @extend .mdc-typography--subtitle1;
-  opacity: 0.6;
-}
-
-footer {
-  width: 100%;
-  padding: 1em 0;
-  margin-top: auto;
-  text-align: center;
-  font-size: 1em;
-  background-color: rgb(110, 110, 110);
-  color: white;
-
-  .material-icons {
-    font-size: 1em;
-    margin-right: 0.2em;
-  }
-
-  .footer-links {
-    margin-top: 0.2em;
-
-    a {
-      color: white;
-      text-decoration: underline;
-
-      :visited {
-        color: white;
-      }
-
-      margin: 0 0.2em;
-    }
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }

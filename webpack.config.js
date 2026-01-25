@@ -5,14 +5,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = [
   {
     mode: 'production',
-    entry: ['./public/style/index.scss', './public/index.ts'],
+    entry: ['./public/style/index.scss', './public/index.tsx'],
     devtool: 'source-map',
     output: {
       filename: 'bundle.js',
       path: path.resolve(__dirname, 'dist/public')
     },
     resolve: {
-      extensions: ['.ts', '.js']
+      extensions: ['.tsx', '.ts', '.jsx', '.js']
     },
     plugins: [
       new HtmlWebpackPlugin({
@@ -22,7 +22,7 @@ module.exports = [
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.(ts|tsx)$/,
           use: [
             {
               loader: 'ts-loader',
