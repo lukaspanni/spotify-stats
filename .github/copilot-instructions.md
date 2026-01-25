@@ -142,7 +142,7 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 - Use `pnpm` for package management
 - Check for security vulnerabilities regularly
 - Core dependencies:
-  - Native `fetch()` API for HTTP requests (no axios usage)
+  - Native `fetch()` API for HTTP requests (codebase uses fetch, though axios is available)
   - `zod` for validation
   - `react` and `react-dom` for UI
   - `class-variance-authority`, `clsx`, `tailwind-merge` for styling utilities
