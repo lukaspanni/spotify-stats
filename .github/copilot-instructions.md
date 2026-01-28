@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This is a Spotify statistics viewer application that displays user's top tracks and artists. The application consists of:
+This is a Spotify statistics viewer application that displays a user's top tracks and artists. The application consists of:
 - **Backend**: Cloudflare Workers serving as API proxy and authentication handler
 - **Frontend**: React application with TypeScript for displaying Spotify statistics
 
@@ -23,17 +23,9 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 ```
 /src                          - Backend Cloudflare Workers code
   /test                       - Backend tests
-  index.ts                    - Main entry point for Cloudflare Worker
-  handlers.ts                 - Request handlers (login, callback, proxy)
-  auth.ts                     - Spotify OAuth authentication
-  spotify-client.ts           - Spotify API client
-  cookies.ts                  - Cookie parsing and building
-  cors.ts                     - CORS handling
-  types.ts                    - TypeScript type definitions
 /public                       - Frontend React application
   /components                 - React components
     /ui                       - Reusable UI components
-  index.html                  - Entry HTML file
 /dist                         - Build output (not committed)
 ```
 
@@ -67,10 +59,15 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 ### TypeScript
 
 - **Strict mode enabled** - All strict TypeScript checks are on
-- **ES2020 target** - Use modern JavaScript features
-- **Module system**: node16
 - Always use explicit types, avoid `any`
-- Use `.js` extensions in imports (TypeScript module resolution requirement)
+
+- **Backend TypeScript (Cloudflare Workers)**
+  - `tsconfig.json` uses **ES2020 target** and **`module: node16`**
+  - Use `.js` extensions in relative imports to match Node 16 / Cloudflare module resolution
+
+- **Frontend TypeScript (React / browser)**
+  - `tsconfig.browser.json` uses **ES2016 target**, **`module: ESNext`**, and **`moduleResolution: bundler`**
+  - Rely on Vite/bundler for module resolution; do not use `.js` extensions in frontend imports
 
 ### Backend (Cloudflare Workers)
 
@@ -88,7 +85,7 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 - Props should have explicit type definitions
 - Use Tailwind CSS for styling with `class-variance-authority` and `clsx` for conditional classes
 - UI components follow shadcn/ui patterns (see `/public/components/ui`)
-- Client-side API calls through the backend proxy
+- Client-side API calls use the Spotify Web API directly and fall back to the backend `/proxy-api` endpoint on error
 
 ### Testing
 
@@ -103,15 +100,6 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 - ESLint config in `eslint.config.mjs` (flat config format)
 - Always run linting before committing: `pnpm run lint`
 - Auto-format code: `pnpm run format`
-
-## Important Patterns and Conventions
-
-1. **Environment Variables**: Defined in `wrangler.toml` and accessed via `env` parameter
-2. **CORS**: Custom CORS handling in `cors.ts` - add allowed origins there
-3. **Authentication**: OAuth tokens stored in HTTP-only cookies for security
-4. **API Proxy**: All Spotify API calls go through `/proxy-api` endpoint to avoid CORS issues
-5. **Error Handling**: Return appropriate HTTP status codes with meaningful error messages
-6. **Type Safety**: Use Zod for runtime validation where needed
 
 ## Common Tasks
 
@@ -128,39 +116,3 @@ This is a Spotify statistics viewer application that displays user's top tracks 
 2. Define prop types with TypeScript interfaces
 3. Use Tailwind classes for styling
 4. Add to parent component imports
-
-### Updating Spotify API Integration
-
-1. Check `spotify-client.ts` for existing patterns
-2. Add new methods following existing conventions
-3. Update type definitions in `types.ts`
-4. Proxy calls through `/proxy-api` endpoint
-
-## Dependencies
-
-- Keep dependencies up to date but test thoroughly
-- Use `pnpm` for package management
-- Check for security vulnerabilities regularly
-- Core dependencies:
-  - Native `fetch()` API for HTTP requests (codebase uses fetch, though axios is available)
-  - `zod` for validation
-  - `react` and `react-dom` for UI
-  - `class-variance-authority`, `clsx`, `tailwind-merge` for styling utilities
-  - `lucide-react` for icons
-
-## Deployment
-
-- Hosted on Cloudflare Workers
-- Custom domain: `top-lists.lukaspanni.de`
-- Deploy with `pnpm run deploy`
-- Ensure frontend is built before deploying
-- Environment variables must be set in Cloudflare Workers dashboard
-
-## Notes for Copilot
-
-- This is a full-stack TypeScript project with clear separation between backend (Workers) and frontend (React)
-- When making changes, consider both backend and frontend implications
-- Always maintain type safety
-- Follow existing patterns for consistency
-- Test changes locally with `pnpm run dev` before deploying
-- When suggesting new features, consider Cloudflare Workers limitations and pricing
