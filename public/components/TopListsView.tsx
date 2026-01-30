@@ -102,7 +102,7 @@ export function TopListsView({
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex flex-col items-center gap-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-center bg-gradient-to-r from-spotify to-spotify-dark bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-5xl font-bold text-center bg-linear-to-r from-spotify to-spotify-dark bg-clip-text text-transparent">
           Spotify Stats
         </h1>
         <TimeRangeSelector timeRange={timeRange} onChange={handleTimeRangeChange} translator={translator} />

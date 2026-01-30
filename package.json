@@ -46,6 +46,7 @@
     "vite-plugin-static-copy": "^3.1.6"
   },
   "dependencies": {
+    "@base-ui/react": "^1.1.0",
     "axios": "1.13.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -65,9 +66,9 @@
     "format": "prettier --config .prettierrc '**/*.{ts,js,html,scss,css}' --write",
     "build:frontend": "vite build",
     "build:frontend-debug": "vite build --mode development",
-    "dev": "pnpm run build:frontend && wrangler dev",
+    "dev": "pnpm run build:frontend && pnpx wrangler dev",
     "dev:frontend": "vite",
     "preview": "vite preview",
-    "deploy": "pnpm run build:frontend && wrangler deploy"
+    "deploy": "pnpm run build:frontend && pnpx wrangler deploy"
   }
 }

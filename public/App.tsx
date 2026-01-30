@@ -24,33 +24,52 @@ export function App(): React.JSX.Element {
     const mapper = new TranslationMapper(TranslationMapper.detectLanguage());
     setTranslationMapper(mapper);
 
-    // Check access token
-    const accessTokenCookie = document.cookie
-      .split(';')
-      .map((c) => c.trim())
-      .find((c) => c.startsWith('accessToken='))
-      ?.split('=')[1];
-
-    if (accessTokenCookie)
+    if (import.meta.env.DEV) {
+      setIsAuthorized(true);
       try {
-        const accessToken = JSON.parse(decodeURIComponent(accessTokenCookie));
-        if (accessToken?.token) {
-          const now = new Date().getTime();
-          if (accessToken.expires > now) {
-            setIsAuthorized(true);
-            try {
-              const client = new TopListsClientFactory().getTopListsClient(accessToken.token);
-              setTopListsClient(client);
-            } catch (e) {
-              console.error('Failed to initialize client:', e);
-            }
-          } else window.location.href = '/refresh-token';
-        }
+        const client = new TopListsClientFactory().getTopListsClient();
+        setTopListsClient(client);
       } catch (e) {
-        console.error('Failed to parse accessToken cookie:', e);
-        // Optionally clear invalid cookie to avoid repeated errors
-        document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+        console.error('Failed to initialize dev client:', e);
       }
+    } else {
+      // Check access token
+      const accessTokenCookie = document.cookie
+        .split(';')
+        .map((c) => c.trim())
+        .find((c) => c.startsWith('accessToken='))
+        ?.split('=')[1];
+
+      const accessToken = (() => {
+        if (!accessTokenCookie) return null;
+        try {
+          return JSON.parse(decodeURIComponent(accessTokenCookie)) as {
+            token?: string;
+            expires?: number;
+          };
+        } catch (e) {
+          console.error('Failed to parse accessToken cookie:', e);
+          // Optionally clear invalid cookie to avoid repeated errors
+          document.cookie = 'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+          return null;
+        }
+      })();
+
+      if (accessToken?.token) {
+        const now = new Date().getTime();
+        if (accessToken.expires && accessToken.expires > now) {
+          setIsAuthorized(true);
+          try {
+            const client = new TopListsClientFactory().getTopListsClient(accessToken.token);
+            setTopListsClient(client);
+          } catch (e) {
+            console.error('Failed to initialize client:', e);
+          }
+        } else {
+          window.location.href = '/refresh-token';
+        }
+      }
+    }
 
     // Get time range from URL
     const queryTimeRange = new URLSearchParams(window.location.search).get('time_range');
