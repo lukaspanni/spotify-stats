@@ -16,6 +16,7 @@ export function TimeRangeSelector({ timeRange, onChange, translator }: TimeRange
     medium_term: 'Last 6 Months',
     short_term: 'Last 4 Weeks'
   });
+  const displayValue = options[timeRange] ?? label;
 
   useEffect(() => {
     translator.initializedPromise.then(() => {
@@ -33,12 +34,14 @@ export function TimeRangeSelector({ timeRange, onChange, translator }: TimeRange
   }, [translator]);
 
   return (
-    <div className="w-full max-w-xs">
-      <Select value={timeRange} onValueChange={(value) => onChange(value as TimeRange)}>
+    <div className="w-full">
+      <Select value={timeRange} onValueChange={(value) => onChange(value as TimeRange)} defaultValue={'long_term'}>
         <SelectTrigger className="bg-card">
-          <SelectValue placeholder={label} />
+          <span data-slot="select-value" className="flex flex-1 text-left">
+            {displayValue}
+          </span>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent alignItemWithTrigger={false}>
           <SelectItem value="long_term">{options.long_term}</SelectItem>
           <SelectItem value="medium_term">{options.medium_term}</SelectItem>
           <SelectItem value="short_term">{options.short_term}</SelectItem>
