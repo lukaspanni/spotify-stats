@@ -160,10 +160,22 @@ export function CreatePlaylistDialog({
                   {selectedTrackIds.size} {texts.tracksSelected}
                 </span>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="xs" onClick={selectAll} disabled={isLoading}>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={selectAll}
+                    disabled={isLoading}
+                    aria-label="Select all tracks"
+                  >
                     {texts.selectAll}
                   </Button>
-                  <Button variant="ghost" size="xs" onClick={deselectAll} disabled={isLoading}>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={deselectAll}
+                    disabled={isLoading}
+                    aria-label="Deselect all tracks"
+                  >
                     {texts.deselectAll}
                   </Button>
                 </div>
@@ -191,6 +203,15 @@ export function CreatePlaylistDialog({
                           isSelected ? 'bg-muted/40' : ''
                         }`}
                         onClick={() => toggleTrack(track.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleTrack(track.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${isSelected ? 'Deselect' : 'Select'} ${track.name} by ${track.artists.map((a) => a.name).join(', ')}`}
                       >
                         <div className="flex items-center justify-center w-8 shrink-0">
                           {isSelected ? (
@@ -202,7 +223,7 @@ export function CreatePlaylistDialog({
 
                         <div className="w-10 h-10 shrink-0 rounded overflow-hidden bg-muted flex items-center justify-center">
                           {imageUrl ? (
-                            <img src={imageUrl} alt={track.album.name} className="w-full h-full object-cover" />
+                            <img src={imageUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <Music className="w-5 h-5 text-muted-foreground" />
                           )}
