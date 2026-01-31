@@ -25,6 +25,7 @@ export function RecommendationsSection({
 
   useEffect(() => {
     loadTopTracks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRange]);
 
   const loadTopTracks = async (): Promise<void> => {

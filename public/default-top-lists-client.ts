@@ -68,11 +68,16 @@ export class DefaultTopListsClient implements TopListsClient {
     if (seedTracks.length > 5) return this.getRecommendationsWithMultipleSeeds(params);
 
     // If we have more than 5 seeds but they're mixed types, just use the first 5
+    const artistCount = Math.min(seedArtists.length, 5);
+    const remainingSlots = 5 - artistCount;
+    const trackCount = Math.min(seedTracks.length, remainingSlots);
+    const genreCount = Math.min(seedGenres.length, Math.max(0, remainingSlots - trackCount));
+
     const limitedParams: RecommendationParameters = {
       ...params,
-      seed_artists: seedArtists.slice(0, Math.min(5, seedArtists.length)),
-      seed_tracks: seedTracks.slice(0, Math.max(0, 5 - seedArtists.length)),
-      seed_genres: seedGenres.slice(0, Math.max(0, 5 - seedArtists.length - seedTracks.length))
+      seed_artists: seedArtists.slice(0, artistCount),
+      seed_tracks: seedTracks.slice(0, trackCount),
+      seed_genres: seedGenres.slice(0, genreCount)
     };
 
     return this.makeRecommendationRequest(limitedParams);
