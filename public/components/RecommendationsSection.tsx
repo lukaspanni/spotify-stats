@@ -72,6 +72,14 @@ export function RecommendationsSection({
     loadRecommendations();
   };
 
+  const translate = (key: string, fallback: string): string => {
+    try {
+      return translator?.translate?.(key, fallback) ?? fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   return (
     <section className="space-y-6">
       <div className="flex items-center justify-between">
@@ -80,25 +88,20 @@ export function RecommendationsSection({
             <Sparkles className="w-6 h-6 text-spotify" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">
-              {translator.translate('recommendations.title', 'Recommended for You')}
-            </h2>
+            <h2 className="text-2xl font-bold">{translate('recommendations.title', 'Recommended for You')}</h2>
             <p className="text-sm text-muted-foreground">
-              {translator.translate(
-                'recommendations.subtitle',
-                `Based on ${selectedSeeds.length} of your favorite tracks`
-              )}
+              {translate('recommendations.subtitle', `Based on ${selectedSeeds.length} of your favorite tracks`)}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => setShowSelector(!showSelector)}>
             <Music className="w-4 h-4 mr-2" />
-            {translator.translate('recommendations.selectSeeds', 'Select Tracks')}
+            {translate('recommendations.selectSeeds', 'Select Tracks')}
           </Button>
           <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            {translator.translate('recommendations.refresh', 'Refresh')}
+            {translate('recommendations.refresh', 'Refresh')}
           </Button>
         </div>
       </div>
@@ -128,9 +131,7 @@ export function RecommendationsSection({
       ) : (
         <div className="text-center py-12 text-muted-foreground">
           <Music className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p>
-            {translator.translate('recommendations.noResults', 'No recommendations yet. Select tracks to get started!')}
-          </p>
+          <p>{translate('recommendations.noResults', 'No recommendations yet. Select tracks to get started!')}</p>
         </div>
       )}
     </section>

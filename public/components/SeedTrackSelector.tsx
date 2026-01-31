@@ -33,16 +33,22 @@ export function SeedTrackSelector({
     onSeedsChange([]);
   };
 
+  const translate = (key: string, fallback: string): string => {
+    try {
+      return translator?.translate?.(key, fallback) ?? fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
   return (
     <Card className="p-4 bg-muted/30">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold">
-              {translator.translate('recommendations.selectTracks', 'Select Seed Tracks')}
-            </h3>
+            <h3 className="text-lg font-semibold">{translate('recommendations.selectTracks', 'Select Seed Tracks')}</h3>
             <p className="text-sm text-muted-foreground">
-              {translator.translate(
+              {translate(
                 'recommendations.selectTracksHelp',
                 `Choose tracks to base recommendations on. You can select more than 5 - we'll make multiple requests!`
               )}
@@ -50,10 +56,10 @@ export function SeedTrackSelector({
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={selectAll}>
-              {translator.translate('recommendations.selectAll', 'Select All')}
+              {translate('recommendations.selectAll', 'Select All')}
             </Button>
             <Button variant="ghost" size="sm" onClick={clearAll}>
-              {translator.translate('recommendations.clearAll', 'Clear All')}
+              {translate('recommendations.clearAll', 'Clear All')}
             </Button>
           </div>
         </div>
@@ -100,10 +106,10 @@ export function SeedTrackSelector({
 
         <div className="flex items-center justify-between pt-2 border-t">
           <p className="text-sm text-muted-foreground">
-            {translator.translate('recommendations.selectedCount', `${selectedSeeds.length} tracks selected`)}
+            {translate('recommendations.selectedCount', `${selectedSeeds.length} tracks selected`)}
           </p>
           <Button onClick={onConfirm} disabled={selectedSeeds.length === 0}>
-            {translator.translate('recommendations.getRecommendations', 'Get Recommendations')}
+            {translate('recommendations.getRecommendations', 'Get Recommendations')}
           </Button>
         </div>
       </div>
