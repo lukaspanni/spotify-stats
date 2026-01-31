@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Music, CheckCircle2, Circle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Checkbox } from './ui/checkbox';
 import { TimeRange, TopListsClient, Track } from '../top-lists-client';
 import { TranslationMapper } from '../translation-mapper';
 
@@ -33,6 +32,9 @@ export function CreatePlaylistDialog({
     description: 'Create a new Spotify playlist with your top tracks from this time range.',
     nameLabel: 'Playlist Name',
     selectLabel: 'Select tracks to include:',
+    selectAll: 'Select All',
+    deselectAll: 'Deselect All',
+    tracksSelected: 'tracks selected',
     cancel: 'Cancel',
     create: 'Create',
     creating: 'Creating...',
@@ -55,6 +57,9 @@ export function CreatePlaylistDialog({
           description: translator.get('create-playlist-dialog-description'),
           nameLabel: translator.get('playlist-name-label'),
           selectLabel: translator.get('select-tracks-label'),
+          selectAll: translator.get('select-all-button') || 'Select All',
+          deselectAll: translator.get('deselect-all-button') || 'Deselect All',
+          tracksSelected: translator.get('tracks-selected') || 'tracks selected',
           cancel: translator.get('cancel-button'),
           create: translator.get('confirm-button'),
           creating: translator.get('creating-playlist'),
@@ -97,6 +102,14 @@ export function CreatePlaylistDialog({
     });
   };
 
+  const selectAll = (): void => {
+    setSelectedTrackIds(new Set(tracks.map((t) => t.id)));
+  };
+
+  const deselectAll = (): void => {
+    setSelectedTrackIds(new Set());
+  };
+
   const handleCreate = async (): Promise<void> => {
     if (selectedTrackIds.size === 0) return;
 
@@ -119,43 +132,118 @@ export function CreatePlaylistDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>{texts.title}</DialogTitle>
+          <DialogTitle className="text-xl">{texts.title}</DialogTitle>
           <DialogDescription>{texts.description}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="flex-1 overflow-hidden flex flex-col gap-5">
           <div className="space-y-2">
-            <Label htmlFor="playlist-name">{texts.nameLabel}</Label>
+            <Label htmlFor="playlist-name" className="text-base font-medium">
+              {texts.nameLabel}
+            </Label>
             <Input
               id="playlist-name"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
               placeholder={texts.nameLabel}
+              className="h-10"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>{texts.selectLabel}</Label>
+          <div className="flex-1 overflow-hidden flex flex-col space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">{texts.selectLabel}</Label>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>
+                  {selectedTrackIds.size} {texts.tracksSelected}
+                </span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={selectAll}
+                    disabled={isLoading}
+                    aria-label="Select all tracks"
+                  >
+                    {texts.selectAll}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={deselectAll}
+                    disabled={isLoading}
+                    aria-label="Deselect all tracks"
+                  >
+                    {texts.deselectAll}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <div className="max-h-96 overflow-y-auto border rounded-md p-4 space-y-2">
-                {tracks.map((track, index) => (
-                  <div key={track.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={track.id}
-                      checked={selectedTrackIds.has(track.id)}
-                      onChange={() => toggleTrack(track.id)}
-                    />
-                    <Label htmlFor={track.id} className="flex-1 cursor-pointer">
-                      {index + 1}. {track.name} - {track.artists.map((a) => a.name).join(', ')}
-                    </Label>
-                  </div>
-                ))}
+              <div className="flex-1 overflow-y-auto border rounded-lg bg-muted/30">
+                <div className="divide-y">
+                  {tracks.map((track, index) => {
+                    const isSelected = selectedTrackIds.has(track.id);
+                    const imageUrl =
+                      track.album.images.find((i) => i.height === 64)?.url ||
+                      track.album.images.find((i) => i.height <= 300)?.url ||
+                      track.album.images[0]?.url;
+
+                    return (
+                      <div
+                        key={track.id}
+                        className={`flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer ${
+                          isSelected ? 'bg-muted/40' : ''
+                        }`}
+                        onClick={() => toggleTrack(track.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggleTrack(track.id);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${isSelected ? 'Deselect' : 'Select'} ${track.name} by ${track.artists.map((a) => a.name).join(', ')}`}
+                      >
+                        <div className="flex items-center justify-center w-8 shrink-0">
+                          {isSelected ? (
+                            <CheckCircle2 className="w-5 h-5 text-spotify" />
+                          ) : (
+                            <Circle className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+
+                        <div className="w-10 h-10 shrink-0 rounded overflow-hidden bg-muted flex items-center justify-center">
+                          {imageUrl ? (
+                            <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <Music className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-mono w-6 shrink-0">#{index + 1}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm truncate">{track.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {track.artists.map((a) => a.name).join(', ')}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
