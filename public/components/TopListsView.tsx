@@ -4,6 +4,7 @@ import { TranslationMapper } from '../translation-mapper';
 import { TimeRangeSelector } from './TimeRangeSelector';
 import { TopTracksSection } from './TopTracksSection';
 import { TopArtistsSection } from './TopArtistsSection';
+import { RecommendationsSection } from './RecommendationsSection';
 import { PaginationData } from '../pagination-data';
 
 interface TopListsViewProps {
@@ -126,6 +127,8 @@ export function TopListsView({
         translator={translator}
         timeRange={timeRange}
       />
+
+      <RecommendationsSection client={client} translator={translator} timeRange={timeRange} />
     </div>
   );
 }

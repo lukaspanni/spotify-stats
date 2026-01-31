@@ -65,9 +65,7 @@ export function App(): React.JSX.Element {
           } catch (e) {
             console.error('Failed to initialize client:', e);
           }
-        } else {
-          window.location.href = '/refresh-token';
-        }
+        } else window.location.href = '/refresh-token';
       }
     }
 

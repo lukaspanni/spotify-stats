@@ -6,7 +6,10 @@ import {
   TopArtistsResponse,
   TopListsClient,
   TopTracksResponse,
-  Track
+  Track,
+  RecommendationParameters,
+  RecommendationsResponse,
+  AvailableGenreSeedsResponse
 } from './top-lists-client';
 
 interface MockDataSet {
@@ -120,6 +123,46 @@ export class MockTopListsClient implements TopListsClient {
       id: `mock-playlist-${name.toLowerCase().replace(/\s+/g, '-')}`,
       external_urls: { spotify: 'https://open.spotify.com/playlist/mock-playlist' },
       snapshot_id: 'mock-snapshot'
+    };
+  }
+
+  public async getRecommendations(params: RecommendationParameters): Promise<RecommendationsResponse> {
+    // Generate mock recommendations based on provided seeds
+    const limit = params.limit || 20;
+    const mockTracks = buildTracks('medium_term', limit, buildArtists('medium_term', 10));
+
+    // Add "Recommended" prefix to distinguish from top tracks
+    const recommendedTracks = mockTracks.map((track, index) => ({
+      ...track,
+      id: `mock-recommendation-${index + 1}`,
+      name: `Recommended: ${track.name}`
+    }));
+
+    return {
+      seeds: [
+        ...(params.seed_tracks?.slice(0, 5).map((id) => ({
+          id,
+          type: 'TRACK',
+          href: `https://api.spotify.com/v1/tracks/${id}`
+        })) || []),
+        ...(params.seed_artists?.slice(0, 5).map((id) => ({
+          id,
+          type: 'ARTIST',
+          href: `https://api.spotify.com/v1/artists/${id}`
+        })) || []),
+        ...(params.seed_genres?.slice(0, 5).map((genre) => ({
+          id: genre,
+          type: 'GENRE',
+          href: ''
+        })) || [])
+      ],
+      tracks: recommendedTracks
+    };
+  }
+
+  public async getAvailableGenreSeeds(): Promise<AvailableGenreSeedsResponse> {
+    return {
+      genres: GENRE_POOL.flat()
     };
   }
 
