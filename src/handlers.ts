@@ -135,6 +135,75 @@ export const handleRefreshToken = async (request: Request, env: Env): Promise<Re
   }
 };
 
+export const handleSetTokens = async (request: Request, env: Env): Promise<Response> => {
+  if (request.method !== 'POST') {
+    const headers = buildCorsHeaders(request, env);
+    return new Response('Method Not Allowed', { status: 405, headers });
+  }
+
+  let body: { accessToken?: string; refreshToken?: string; expires?: number };
+  try {
+    body = await request.json();
+  } catch (err) {
+    const headers = buildCorsHeaders(request, env);
+    headers.set('Content-Type', 'application/json');
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { status: 400, headers });
+  }
+
+  if (!body.accessToken || !body.refreshToken) {
+    const headers = buildCorsHeaders(request, env);
+    headers.set('Content-Type', 'application/json');
+    return new Response(JSON.stringify({ error: 'Missing accessToken or refreshToken' }), { status: 400, headers });
+  }
+
+  const accessToken: AccessToken = {
+    token: body.accessToken,
+    expires: body.expires || buildExpiryTimestamp(3600), // Default to 1 hour if not provided
+    refreshToken: body.refreshToken
+  };
+
+  const headers = buildCorsHeaders(request, env);
+  headers.set('Content-Type', 'application/json');
+  headers.append(
+    'Set-Cookie',
+    buildSetCookieHeader(accessTokenCookie, JSON.stringify(accessToken), { maxAge: accessTokenMaxAgeSeconds })
+  );
+
+  return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+};
+
+export const handleGetTokens = async (request: Request, env: Env): Promise<Response> => {
+  if (request.method !== 'GET') {
+    const headers = buildCorsHeaders(request, env);
+    return new Response('Method Not Allowed', { status: 405, headers });
+  }
+
+  const cookies = parseCookies(request.headers.get('Cookie'));
+  const storedToken = cookies[accessTokenCookie];
+  let accessToken: AccessToken | null = null;
+
+  try {
+    accessToken = storedToken ? (JSON.parse(storedToken) as AccessToken) : null;
+  } catch (err) {
+    console.error('Error parsing access token', err);
+  }
+
+  const headers = buildCorsHeaders(request, env);
+  headers.set('Content-Type', 'application/json');
+
+  if (!accessToken?.token || !accessToken?.refreshToken)
+    return new Response(JSON.stringify({ error: 'No tokens found' }), { status: 404, headers });
+
+  return new Response(
+    JSON.stringify({
+      accessToken: accessToken.token,
+      refreshToken: accessToken.refreshToken,
+      expires: accessToken.expires
+    }),
+    { status: 200, headers }
+  );
+};
+
 export const handleProxy = async (request: Request, env: Env): Promise<Response> => {
   const url = new URL(request.url);
   const proxyPath = url.pathname.replace(/^\/proxy-api\/?/, '');
