@@ -5,6 +5,7 @@ import { TimeRangeSelector } from './TimeRangeSelector';
 import { TopTracksSection } from './TopTracksSection';
 import { TopArtistsSection } from './TopArtistsSection';
 import { RecommendationsSection } from './RecommendationsSection';
+import { TokenExportDialog } from './TokenExportDialog';
 import { PaginationData } from '../pagination-data';
 
 interface TopListsViewProps {
@@ -105,9 +106,15 @@ export function TopListsView({
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex flex-col items-center gap-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-center bg-linear-to-r from-spotify to-spotify-dark bg-clip-text text-transparent">
-          Spotify Stats
-        </h1>
+        <div className="flex items-center justify-between w-full max-w-4xl">
+          <div className="flex-1" />
+          <h1 className="text-4xl md:text-5xl font-bold text-center bg-linear-to-r from-spotify to-spotify-dark bg-clip-text text-transparent">
+            Spotify Stats
+          </h1>
+          <div className="flex-1 flex justify-end">
+            <TokenExportDialog />
+          </div>
+        </div>
         <TimeRangeSelector timeRange={timeRange} onChange={handleTimeRangeChange} translator={translator} />
       </div>
 

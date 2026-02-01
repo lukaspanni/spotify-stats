@@ -3,12 +3,19 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { AuthorizeView } from './components/AuthorizeView';
+import { TokenPasteView } from './components/TokenPasteView';
 import { TopListsView } from './components/TopListsView';
 import { TopListsClient, TimeRange } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { TranslationMapper } from './translation-mapper';
 import { queryClient } from './query-client';
 import { useFeatureFlags } from './hooks/useFeatureFlags';
+
+const isPreviewOrLocalEnv = (): boolean => {
+  const hostname = window.location.hostname;
+  // Check if we're on localhost or a preview URL (*.lupanni-lp.workers.dev)
+  return hostname === 'localhost' || hostname.includes('lupanni-lp.workers.dev');
+};
 
 function AppContent(): React.JSX.Element {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -102,6 +109,8 @@ function AppContent(): React.JSX.Element {
           onTimeRangeChange={setTimeRange}
           enableRecommendations={featureFlags.recommendations}
         />
+      ) : isPreviewOrLocalEnv() ? (
+        <TokenPasteView translator={translationMapper} />
       ) : (
         <AuthorizeView translator={translationMapper} />
       )}
