@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { AuthorizeView } from './components/AuthorizeView';
@@ -6,14 +7,18 @@ import { TopListsView } from './components/TopListsView';
 import { TopListsClient, TimeRange } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { TranslationMapper } from './translation-mapper';
+import { queryClient } from './query-client';
+import { useFeatureFlags } from './hooks/useFeatureFlags';
 
-export function App(): React.JSX.Element {
+function AppContent(): React.JSX.Element {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [topListsClient, setTopListsClient] = useState<TopListsClient | null>(null);
   const [translationMapper, setTranslationMapper] = useState<TranslationMapper | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [featureFlags, setFeatureFlags] = useState<{ recommendations: boolean }>({ recommendations: false });
+
+  // Use TanStack Query for feature flags with caching
+  const { data: featureFlags = { recommendations: false } } = useFeatureFlags();
 
   useEffect(() => {
     // Check for dark mode preference
@@ -24,20 +29,6 @@ export function App(): React.JSX.Element {
     // Initialize translation mapper
     const mapper = new TranslationMapper(TranslationMapper.detectLanguage());
     setTranslationMapper(mapper);
-
-    // Fetch feature flags
-    const fetchFeatureFlags = async () => {
-      try {
-        const response = await fetch('/api/feature-flags');
-        if (response.ok) {
-          const flags = await response.json();
-          setFeatureFlags(flags);
-        }
-      } catch (error) {
-        console.warn('Failed to fetch feature flags, using defaults:', error);
-      }
-    };
-    fetchFeatureFlags();
 
     if (import.meta.env.DEV) {
       setIsAuthorized(true);
@@ -146,5 +137,13 @@ export function App(): React.JSX.Element {
         </div>
       </footer>
     </div>
+  );
+}
+
+export function App(): React.JSX.Element {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   );
 }

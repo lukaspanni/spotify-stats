@@ -26,7 +26,14 @@ The feature flag is checked via the `/api/feature-flags` endpoint, which returns
 }
 ```
 
-The frontend automatically fetches this endpoint on load and conditionally renders the RecommendationsSection component based on the flag value.
+The frontend uses **TanStack Query** for robust data fetching with automatic caching:
+- Feature flags are cached for 5 minutes (stale time)
+- Cache is garbage collected after 10 minutes of inactivity
+- Failed requests are retried once automatically
+- No refetching on window focus to avoid unnecessary backend hits
+- Defaults to disabled if the API call fails
+
+The RecommendationsSection component is conditionally rendered based on the flag value.
 
 ### Deployment
 
@@ -43,3 +50,15 @@ Feature flag tests are included in `src/test/handlers.spec.ts` covering:
 - Enabled state
 - CORS headers
 - Non-GET request handling
+
+### Implementation Details
+
+**Backend:**
+- `/api/feature-flags` endpoint in `src/handlers.ts`
+- Environment variable checked at runtime
+
+**Frontend:**
+- `useFeatureFlags` hook in `public/hooks/useFeatureFlags.ts`
+- TanStack Query client configured in `public/query-client.ts`
+- QueryClientProvider wraps the App component
+- Automatic caching prevents redundant API calls
