@@ -96,7 +96,10 @@ export class DefaultTopListsClient implements TopListsClient {
   ): Promise<RecommendationsResponse> {
     const seedTracks = params.seed_tracks || [];
     const requestLimit = params.limit || 20;
-    const tracksPerRequest = Math.ceil(requestLimit / Math.ceil(seedTracks.length / 5));
+
+    // Calculate tracks per request to ensure we get enough unique results
+    // Request more tracks per batch to account for potential duplicates
+    const tracksPerRequest = Math.ceil(requestLimit / Math.ceil(seedTracks.length / 5)) + 5;
 
     // Split seed tracks into groups of 5
     const seedGroups: string[][] = [];

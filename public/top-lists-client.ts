@@ -86,9 +86,13 @@ export interface RecommendationParameters {
   seed_artists?: string[];
   seed_tracks?: string[];
   seed_genres?: string[];
+  /** Target energy (0.0 to 1.0) - Higher values mean more energetic tracks */
   target_energy?: number;
+  /** Target danceability (0.0 to 1.0) - Higher values mean more suitable for dancing */
   target_danceability?: number;
+  /** Target valence (0.0 to 1.0) - Higher values mean more positive/cheerful tracks */
   target_valence?: number;
+  /** Target popularity (0 to 100) - Higher values mean more popular tracks */
   target_popularity?: number;
 }
 

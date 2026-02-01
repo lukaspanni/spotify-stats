@@ -36,7 +36,6 @@ export default [
       'prettier/prettier': 'error',
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/explicit-function-return-type': 'error',
       curly: ['warn', 'multi'],
       eqeqeq: ['warn', 'smart'],
       'prefer-const': 'error',

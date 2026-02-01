@@ -129,6 +129,7 @@ export class MockTopListsClient implements TopListsClient {
   public async getRecommendations(params: RecommendationParameters): Promise<RecommendationsResponse> {
     // Generate mock recommendations based on provided seeds
     const limit = params.limit || 20;
+
     const mockTracks = buildTracks('medium_term', limit, buildArtists('medium_term', 10));
 
     // Add "Recommended" prefix to distinguish from top tracks
@@ -138,24 +139,27 @@ export class MockTopListsClient implements TopListsClient {
       name: `Recommended: ${track.name}`
     }));
 
+    // Create seeds array matching real API behavior
+    const seeds = [
+      ...(params.seed_tracks?.map((id) => ({
+        id,
+        type: 'TRACK',
+        href: `https://api.spotify.com/v1/tracks/${id}`
+      })) || []),
+      ...(params.seed_artists?.map((id) => ({
+        id,
+        type: 'ARTIST',
+        href: `https://api.spotify.com/v1/artists/${id}`
+      })) || []),
+      ...(params.seed_genres?.map((genre) => ({
+        id: genre,
+        type: 'GENRE',
+        href: ''
+      })) || [])
+    ];
+
     return {
-      seeds: [
-        ...(params.seed_tracks?.slice(0, 5).map((id) => ({
-          id,
-          type: 'TRACK',
-          href: `https://api.spotify.com/v1/tracks/${id}`
-        })) || []),
-        ...(params.seed_artists?.slice(0, 5).map((id) => ({
-          id,
-          type: 'ARTIST',
-          href: `https://api.spotify.com/v1/artists/${id}`
-        })) || []),
-        ...(params.seed_genres?.slice(0, 5).map((genre) => ({
-          id: genre,
-          type: 'GENRE',
-          href: ''
-        })) || [])
-      ],
+      seeds,
       tracks: recommendedTracks
     };
   }

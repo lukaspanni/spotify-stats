@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Track } from '../top-lists-client';
 import { TranslationMapper } from '../translation-mapper';
 import { Button } from './ui/button';
@@ -34,8 +34,9 @@ export function SeedTrackSelector({
   };
 
   const translate = (key: string, fallback: string): string => {
+    if (!translator) return fallback;
     try {
-      return translator?.translate?.(key, fallback) ?? fallback;
+      return translator.get(key);
     } catch {
       return fallback;
     }
@@ -76,8 +77,12 @@ export function SeedTrackSelector({
                 }`}
               >
                 <div className="flex-shrink-0">
-                  {track.album.images[2] ? (
-                    <img src={track.album.images[2].url} alt={track.album.name} className="w-12 h-12 rounded" />
+                  {track.album.images.find((i) => i.height === 64)?.url || track.album.images[0]?.url ? (
+                    <img
+                      src={track.album.images.find((i) => i.height === 64)?.url || track.album.images[0]?.url}
+                      alt={track.album.name}
+                      className="w-12 h-12 rounded"
+                    />
                   ) : (
                     <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
                       <span className="text-xs">♪</span>
