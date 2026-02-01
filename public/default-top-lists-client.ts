@@ -5,7 +5,10 @@ import {
   TopTracksResponse,
   CreatePlaylistResponse,
   UserProfile,
-  schemas
+  schemas,
+  RecommendationParameters,
+  RecommendationsResponse,
+  AvailableGenreSeedsResponse
 } from './top-lists-client';
 
 export class DefaultTopListsClient implements TopListsClient {
@@ -44,6 +47,121 @@ export class DefaultTopListsClient implements TopListsClient {
 
   public async createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null> {
     return this.createPlaylistInternal(name, trackUris);
+  }
+
+  public async getRecommendations(params: RecommendationParameters): Promise<RecommendationsResponse> {
+    // Validate that at least one seed is provided
+    const totalSeeds =
+      (params.seed_artists?.length || 0) + (params.seed_tracks?.length || 0) + (params.seed_genres?.length || 0);
+
+    if (totalSeeds === 0) throw new Error('At least one seed (artist, track, or genre) is required');
+
+    // If we have 5 or fewer seeds, make a single request
+    const seedTracks = params.seed_tracks || [];
+    const seedArtists = params.seed_artists || [];
+    const seedGenres = params.seed_genres || [];
+
+    if (totalSeeds <= 5) return this.makeRecommendationRequest(params);
+
+    // Handle more than 5 seed tracks by making multiple requests with different combinations
+    // We'll focus on seed_tracks since that's mentioned in the requirements
+    if (seedTracks.length > 5) return this.getRecommendationsWithMultipleSeeds(params);
+
+    // If we have more than 5 seeds but they're mixed types, just use the first 5
+    const artistCount = Math.min(seedArtists.length, 5);
+    const remainingSlots = 5 - artistCount;
+    const trackCount = Math.min(seedTracks.length, remainingSlots);
+    const genreCount = Math.min(seedGenres.length, Math.max(0, remainingSlots - trackCount));
+
+    const limitedParams: RecommendationParameters = {
+      ...params,
+      seed_artists: seedArtists.slice(0, artistCount),
+      seed_tracks: seedTracks.slice(0, trackCount),
+      seed_genres: seedGenres.slice(0, genreCount)
+    };
+
+    return this.makeRecommendationRequest(limitedParams);
+  }
+
+  public async getAvailableGenreSeeds(): Promise<AvailableGenreSeedsResponse> {
+    const result = await this.makeRequest<AvailableGenreSeedsResponse>(
+      'recommendations/available-genre-seeds',
+      schemas.AvailableGenreSeedsResponse
+    );
+    return result ?? { genres: [] };
+  }
+
+  private async getRecommendationsWithMultipleSeeds(
+    params: RecommendationParameters
+  ): Promise<RecommendationsResponse> {
+    const seedTracks = params.seed_tracks || [];
+    const requestLimit = params.limit || 20;
+
+    // Calculate tracks per request to ensure we get enough unique results
+    // Request more tracks per batch to account for potential duplicates
+    const tracksPerRequest = Math.ceil(requestLimit / Math.ceil(seedTracks.length / 5)) + 5;
+
+    // Split seed tracks into groups of 5
+    const seedGroups: string[][] = [];
+    for (let i = 0; i < seedTracks.length; i += 5) seedGroups.push(seedTracks.slice(i, i + 5));
+
+    // Make multiple requests with different seed combinations
+    const requests = seedGroups.map((seedGroup) =>
+      this.makeRecommendationRequest({
+        ...params,
+        seed_tracks: seedGroup,
+        seed_artists: undefined, // Clear other seeds when using multiple track seeds
+        seed_genres: undefined,
+        limit: Math.min(tracksPerRequest, 100)
+      })
+    );
+
+    const results = await Promise.all(requests);
+
+    // Combine results and deduplicate tracks
+    const allTracks = results.flatMap((r) => r.tracks);
+    const uniqueTracks = allTracks.filter((track, index, self) => self.findIndex((t) => t.id === track.id) === index);
+
+    // Limit to requested amount
+    const limitedTracks = uniqueTracks.slice(0, requestLimit);
+
+    return {
+      seeds: results.flatMap((r) => r.seeds),
+      tracks: limitedTracks
+    };
+  }
+
+  private async makeRecommendationRequest(params: RecommendationParameters): Promise<RecommendationsResponse> {
+    const queryParams = new URLSearchParams();
+
+    // Add seed parameters
+    if (params.seed_artists?.length) queryParams.set('seed_artists', params.seed_artists.slice(0, 5).join(','));
+
+    if (params.seed_tracks?.length) queryParams.set('seed_tracks', params.seed_tracks.slice(0, 5).join(','));
+
+    if (params.seed_genres?.length) queryParams.set('seed_genres', params.seed_genres.slice(0, 5).join(','));
+
+    // Add optional parameters
+    if (params.limit !== undefined) queryParams.set('limit', Math.min(params.limit, 100).toString());
+
+    if (params.market) queryParams.set('market', params.market);
+
+    if (params.target_energy !== undefined) queryParams.set('target_energy', params.target_energy.toString());
+
+    if (params.target_danceability !== undefined)
+      queryParams.set('target_danceability', params.target_danceability.toString());
+
+    if (params.target_valence !== undefined) queryParams.set('target_valence', params.target_valence.toString());
+
+    if (params.target_popularity !== undefined)
+      queryParams.set('target_popularity', params.target_popularity.toString());
+
+    const result = await this.makeRequest<RecommendationsResponse>(
+      `recommendations?${queryParams}`,
+      schemas.RecommendationsResponse
+    );
+
+    return result ?? { seeds: [], tracks: [] };
   }
 
   private buildUrl(path: string): string {

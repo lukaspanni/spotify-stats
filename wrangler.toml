@@ -9,3 +9,7 @@ preview_urls = true
 
 [assets]
 directory = "./dist/public"
+
+[vars]
+# Feature flags - set to "true" to enable, anything else to disable
+ENABLE_RECOMMENDATIONS = "false"

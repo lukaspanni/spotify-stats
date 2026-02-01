@@ -47,6 +47,24 @@ const UserProfileSchema = z.object({
   id: z.string()
 });
 
+const RecommendationSeedSchema = z.object({
+  afterFilteringSize: z.number().optional(),
+  afterRelinkingSize: z.number().optional(),
+  href: z.string().optional(),
+  id: z.string(),
+  initialPoolSize: z.number().optional(),
+  type: z.string()
+});
+
+const RecommendationsResponseSchema = z.object({
+  seeds: z.array(RecommendationSeedSchema),
+  tracks: z.array(TrackSchema)
+});
+
+const AvailableGenreSeedsResponseSchema = z.object({
+  genres: z.array(z.string())
+});
+
 // Infer types from schemas
 export type Image = z.infer<typeof ImageSchema>;
 export type SpotifyTopListElement = z.infer<typeof SpotifyTopListElementSchema>;
@@ -56,8 +74,27 @@ export type TopArtistsResponse = z.infer<typeof TopArtistsResponseSchema>;
 export type TopTracksResponse = z.infer<typeof TopTracksResponseSchema>;
 export type CreatePlaylistResponse = z.infer<typeof CreatePlaylistResponseSchema>;
 export type UserProfile = z.infer<typeof UserProfileSchema>;
+export type RecommendationSeed = z.infer<typeof RecommendationSeedSchema>;
+export type RecommendationsResponse = z.infer<typeof RecommendationsResponseSchema>;
+export type AvailableGenreSeedsResponse = z.infer<typeof AvailableGenreSeedsResponseSchema>;
 
 export type TimeRange = 'short_term' | 'medium_term' | 'long_term';
+
+export interface RecommendationParameters {
+  limit?: number;
+  market?: string;
+  seed_artists?: string[];
+  seed_tracks?: string[];
+  seed_genres?: string[];
+  /** Target energy (0.0 to 1.0) - Higher values mean more energetic tracks */
+  target_energy?: number;
+  /** Target danceability (0.0 to 1.0) - Higher values mean more suitable for dancing */
+  target_danceability?: number;
+  /** Target valence (0.0 to 1.0) - Higher values mean more positive/cheerful tracks */
+  target_valence?: number;
+  /** Target popularity (0 to 100) - Higher values mean more popular tracks */
+  target_popularity?: number;
+}
 
 // Export schemas for use in validation
 export const schemas = {
@@ -67,11 +104,15 @@ export const schemas = {
   TopArtistsResponse: TopArtistsResponseSchema,
   TopTracksResponse: TopTracksResponseSchema,
   CreatePlaylistResponse: CreatePlaylistResponseSchema,
-  UserProfile: UserProfileSchema
+  UserProfile: UserProfileSchema,
+  RecommendationsResponse: RecommendationsResponseSchema,
+  AvailableGenreSeedsResponse: AvailableGenreSeedsResponseSchema
 };
 
 export interface TopListsClient {
   getTopArtists(timeRange: TimeRange, limit?: number, offset?: number): Promise<TopArtistsResponse>;
   getTopTracks(timeRange: TimeRange, limit?: number, offset?: number): Promise<TopTracksResponse>;
   createPlaylist(name: string, trackUris: string[]): Promise<CreatePlaylistResponse | null>;
+  getRecommendations(params: RecommendationParameters): Promise<RecommendationsResponse>;
+  getAvailableGenreSeeds(): Promise<AvailableGenreSeedsResponse>;
 }

@@ -20,6 +20,19 @@ export const handleOptions = (request: Request, env: Env): Response => {
   return new Response(null, { status: 204, headers });
 };
 
+export const handleFeatureFlags = (request: Request, env: Env): Response => {
+  if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 });
+
+  const flags = {
+    recommendations: env.ENABLE_RECOMMENDATIONS === 'true'
+  };
+
+  const headers = buildCorsHeaders(request, env);
+  headers.set('Content-Type', 'application/json');
+
+  return new Response(JSON.stringify(flags), { status: 200, headers });
+};
+
 export const handleLogin = (request: Request, env: Env): Response => {
   if (request.method !== 'GET') return new Response('Method Not Allowed', { status: 405 });
   const config = getEnvConfig(env);

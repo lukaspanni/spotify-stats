@@ -1,4 +1,4 @@
-import { handleOptions, handleLogin } from '../handlers.js';
+import { handleOptions, handleLogin, handleFeatureFlags } from '../handlers.js';
 import type { Env } from '../types.js';
 
 describe('handlers', () => {
@@ -84,6 +84,60 @@ describe('handlers', () => {
       expect(location).toContain('scope=');
       expect(location).toContain('user-read-private');
       expect(location).toContain('user-top-read');
+    });
+  });
+
+  describe('handleFeatureFlags', () => {
+    it('returns 405 for non-GET requests', () => {
+      const env = createEnv();
+      const request = createRequest('https://api.example.com/api/feature-flags', 'POST');
+
+      const response = handleFeatureFlags(request, env);
+
+      expect(response.status).toBe(405);
+    });
+
+    it('returns feature flags with recommendations disabled by default', async () => {
+      const env = createEnv();
+      const request = createRequest('https://api.example.com/api/feature-flags', 'GET');
+
+      const response = handleFeatureFlags(request, env);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get('Content-Type')).toBe('application/json');
+
+      const data = await response.json();
+      expect(data).toEqual({ recommendations: false });
+    });
+
+    it('returns feature flags with recommendations enabled when env var is "true"', async () => {
+      const env = { ...createEnv(), ENABLE_RECOMMENDATIONS: 'true' };
+      const request = createRequest('https://api.example.com/api/feature-flags', 'GET');
+
+      const response = handleFeatureFlags(request, env);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual({ recommendations: true });
+    });
+
+    it('returns feature flags with recommendations disabled for any non-"true" value', async () => {
+      const env = { ...createEnv(), ENABLE_RECOMMENDATIONS: 'false' };
+      const request = createRequest('https://api.example.com/api/feature-flags', 'GET');
+
+      const response = handleFeatureFlags(request, env);
+
+      const data = await response.json();
+      expect(data).toEqual({ recommendations: false });
+    });
+
+    it('includes CORS headers in response', () => {
+      const env = createEnv();
+      const request = createRequest('https://api.example.com/api/feature-flags', 'GET', 'https://api.example.com');
+
+      const response = handleFeatureFlags(request, env);
+
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://api.example.com');
     });
   });
 });

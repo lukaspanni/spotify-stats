@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { AuthorizeView } from './components/AuthorizeView';
@@ -6,13 +7,18 @@ import { TopListsView } from './components/TopListsView';
 import { TopListsClient, TimeRange } from './top-lists-client';
 import { TopListsClientFactory } from './top-lists-client-factory';
 import { TranslationMapper } from './translation-mapper';
+import { queryClient } from './query-client';
+import { useFeatureFlags } from './hooks/useFeatureFlags';
 
-export function App(): React.JSX.Element {
+function AppContent(): React.JSX.Element {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [topListsClient, setTopListsClient] = useState<TopListsClient | null>(null);
   const [translationMapper, setTranslationMapper] = useState<TranslationMapper | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Use TanStack Query for feature flags with caching
+  const { data: featureFlags = { recommendations: false } } = useFeatureFlags();
 
   useEffect(() => {
     // Check for dark mode preference
@@ -65,9 +71,7 @@ export function App(): React.JSX.Element {
           } catch (e) {
             console.error('Failed to initialize client:', e);
           }
-        } else {
-          window.location.href = '/refresh-token';
-        }
+        } else window.location.href = '/refresh-token';
       }
     }
 
@@ -96,6 +100,7 @@ export function App(): React.JSX.Element {
           translator={translationMapper}
           initialTimeRange={timeRange}
           onTimeRangeChange={setTimeRange}
+          enableRecommendations={featureFlags.recommendations}
         />
       ) : (
         <AuthorizeView translator={translationMapper} />
@@ -132,5 +137,13 @@ export function App(): React.JSX.Element {
         </div>
       </footer>
     </div>
+  );
+}
+
+export function App(): React.JSX.Element {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+    </QueryClientProvider>
   );
 }
