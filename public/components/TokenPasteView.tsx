@@ -80,10 +80,15 @@ export function TokenPasteView({ translator }: TokenPasteViewProps): React.JSX.E
                   </li>
                   <li>
                     Parse the JSON to extract <code className="text-foreground">token</code> and{' '}
-                    <code className="text-foreground">refreshToken</code>
+                    <code className="text-foreground">refreshToken</code> fields
                   </li>
                   <li>Paste them into the fields below</li>
                 </ol>
+                <p className="mt-2 text-xs">
+                  <strong className="text-foreground">Example cookie value:</strong>
+                  <br />
+                  <code className="text-xs">{`{"token":"BQD...","refreshToken":"AQD...","expires":1234567890}`}</code>
+                </p>
               </div>
             </div>
           </div>
