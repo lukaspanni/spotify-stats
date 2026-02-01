@@ -1,4 +1,4 @@
-import { handleOptions, handleLogin, handleFeatureFlags } from '../handlers.js';
+import { handleOptions, handleLogin, handleFeatureFlags, handleSetTokens } from '../handlers.js';
 import type { Env } from '../types.js';
 
 describe('handlers', () => {
@@ -136,6 +136,100 @@ describe('handlers', () => {
       const request = createRequest('https://api.example.com/api/feature-flags', 'GET', 'https://api.example.com');
 
       const response = handleFeatureFlags(request, env);
+
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://api.example.com');
+    });
+  });
+
+  describe('handleSetTokens', () => {
+    const createRequestWithBody = (url: string, method: string, body?: object, origin?: string): Request => {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      if (origin) headers.set('Origin', origin);
+      return new Request(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined
+      });
+    };
+
+    it('returns 405 for non-POST requests', async () => {
+      const env = createEnv();
+      const request = createRequestWithBody('https://api.example.com/api/set-tokens', 'GET');
+
+      const response = await handleSetTokens(request, env);
+
+      expect(response.status).toBe(405);
+    });
+
+    it('returns 400 when body is missing', async () => {
+      const env = createEnv();
+      const request = createRequestWithBody('https://api.example.com/api/set-tokens', 'POST');
+
+      const response = await handleSetTokens(request, env);
+
+      expect(response.status).toBe(400);
+      const data = (await response.json()) as { error?: string };
+      expect(data.error).toBeTruthy();
+    });
+
+    it('returns 400 when accessToken is missing', async () => {
+      const env = createEnv();
+      const request = createRequestWithBody('https://api.example.com/api/set-tokens', 'POST', {
+        refreshToken: 'test-refresh-token'
+      });
+
+      const response = await handleSetTokens(request, env);
+
+      expect(response.status).toBe(400);
+      const data = (await response.json()) as { error?: string };
+      expect(data.error).toContain('Missing');
+    });
+
+    it('returns 400 when refreshToken is missing', async () => {
+      const env = createEnv();
+      const request = createRequestWithBody('https://api.example.com/api/set-tokens', 'POST', {
+        accessToken: 'test-access-token'
+      });
+
+      const response = await handleSetTokens(request, env);
+
+      expect(response.status).toBe(400);
+      const data = (await response.json()) as { error?: string };
+      expect(data.error).toContain('Missing');
+    });
+
+    it('returns 200 and sets cookie with valid tokens', async () => {
+      const env = createEnv();
+      const request = createRequestWithBody('https://api.example.com/api/set-tokens', 'POST', {
+        accessToken: 'test-access-token',
+        refreshToken: 'test-refresh-token'
+      });
+
+      const response = await handleSetTokens(request, env);
+
+      expect(response.status).toBe(200);
+      const data = (await response.json()) as { success?: boolean };
+      expect(data.success).toBe(true);
+
+      const setCookie = response.headers.get('Set-Cookie');
+      expect(setCookie).toContain('accessToken=');
+      expect(setCookie).toContain('test-access-token');
+      expect(setCookie).toContain('test-refresh-token');
+    });
+
+    it('includes CORS headers in response', async () => {
+      const env = createEnv();
+      const request = createRequestWithBody(
+        'https://api.example.com/api/set-tokens',
+        'POST',
+        {
+          accessToken: 'test-access-token',
+          refreshToken: 'test-refresh-token'
+        },
+        'https://api.example.com'
+      );
+
+      const response = await handleSetTokens(request, env);
 
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://api.example.com');
     });
