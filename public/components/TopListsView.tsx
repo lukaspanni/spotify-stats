@@ -12,13 +12,15 @@ interface TopListsViewProps {
   translator: TranslationMapper;
   initialTimeRange: TimeRange;
   onTimeRangeChange: (timeRange: TimeRange) => void;
+  enableRecommendations?: boolean;
 }
 
 export function TopListsView({
   client,
   translator,
   initialTimeRange,
-  onTimeRangeChange
+  onTimeRangeChange,
+  enableRecommendations = false
 }: TopListsViewProps): React.JSX.Element {
   const [timeRange, setTimeRange] = useState<TimeRange>(initialTimeRange);
   const [topTracks, setTopTracks] = useState<Track[]>([]);
@@ -128,7 +130,9 @@ export function TopListsView({
         timeRange={timeRange}
       />
 
-      <RecommendationsSection client={client} translator={translator} timeRange={timeRange} />
+      {enableRecommendations && (
+        <RecommendationsSection client={client} translator={translator} timeRange={timeRange} />
+      )}
     </div>
   );
 }

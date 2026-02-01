@@ -13,6 +13,7 @@ export function App(): React.JSX.Element {
   const [translationMapper, setTranslationMapper] = useState<TranslationMapper | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>('short_term');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [featureFlags, setFeatureFlags] = useState<{ recommendations: boolean }>({ recommendations: false });
 
   useEffect(() => {
     // Check for dark mode preference
@@ -23,6 +24,20 @@ export function App(): React.JSX.Element {
     // Initialize translation mapper
     const mapper = new TranslationMapper(TranslationMapper.detectLanguage());
     setTranslationMapper(mapper);
+
+    // Fetch feature flags
+    const fetchFeatureFlags = async () => {
+      try {
+        const response = await fetch('/api/feature-flags');
+        if (response.ok) {
+          const flags = await response.json();
+          setFeatureFlags(flags);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch feature flags, using defaults:', error);
+      }
+    };
+    fetchFeatureFlags();
 
     if (import.meta.env.DEV) {
       setIsAuthorized(true);
@@ -94,6 +109,7 @@ export function App(): React.JSX.Element {
           translator={translationMapper}
           initialTimeRange={timeRange}
           onTimeRangeChange={setTimeRange}
+          enableRecommendations={featureFlags.recommendations}
         />
       ) : (
         <AuthorizeView translator={translationMapper} />

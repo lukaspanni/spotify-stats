@@ -1,5 +1,12 @@
 import type { Env } from './types.js';
-import { handleOptions, handleLogin, handleSpotifyCallback, handleRefreshToken, handleProxy } from './handlers.js';
+import {
+  handleOptions,
+  handleLogin,
+  handleSpotifyCallback,
+  handleRefreshToken,
+  handleProxy,
+  handleFeatureFlags
+} from './handlers.js';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -14,6 +21,7 @@ const handleRequest = async (request: Request, env: Env): Promise<Response> => {
   if (url.pathname === '/login') return handleLogin(request, env);
   if (url.pathname === '/spotify-callback') return handleSpotifyCallback(request, env);
   if (url.pathname === '/refresh-token') return handleRefreshToken(request, env);
+  if (url.pathname === '/api/feature-flags') return handleFeatureFlags(request, env);
   if (url.pathname.startsWith('/proxy-api')) return handleProxy(request, env);
 
   // Serve static assets from the frontend bundle
