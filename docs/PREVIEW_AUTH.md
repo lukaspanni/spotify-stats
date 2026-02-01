@@ -11,30 +11,33 @@ The Spotify OAuth flow requires a fixed redirect URI configured in the Spotify D
 
 ## Solution
 
-We've added a manual token paste flow that allows you to authenticate on preview/local environments by copying tokens from the production app.
+We've added a simple manual token paste flow that allows you to authenticate on preview/local environments by extracting tokens from the production app's browser cookies and pasting them.
 
 ## How It Works
 
 ### 1. On Production (Main App)
 
 When you're authenticated on the main application:
-1. Look for the **"Export Tokens"** button in the top-right corner of the page
-2. Click it to open the token export dialog
-3. Copy the **Access Token** and **Refresh Token** displayed
+1. Open browser DevTools (F12)
+2. Navigate to **Application** → **Cookies** (Chrome) or **Storage** → **Cookies** (Firefox)
+3. Find the `accessToken` cookie
+4. Copy the cookie value (it's a JSON string)
+5. Parse the JSON to extract the `token` and `refreshToken` fields
 
 ### 2. On Preview/Localhost
 
 When you open the app on a preview URL or localhost:
 1. The app will automatically detect you're on a preview/local environment
 2. Instead of the normal OAuth button, you'll see a **"Token Paste"** form
-3. Paste the **Access Token** and **Refresh Token** from the production app
-4. Click **"Set Tokens"** to authenticate
+3. Paste the **Access Token** (the `token` field from the cookie JSON)
+4. Paste the **Refresh Token** (the `refreshToken` field from the cookie JSON)
+5. Click **"Set Tokens"** to authenticate
 
 The app will set the appropriate cookies and reload, giving you full access.
 
 ## Technical Details
 
-### Backend Endpoints
+### Backend Endpoint
 
 #### `POST /api/set-tokens`
 Accepts manually pasted tokens and sets authentication cookies.
@@ -55,22 +58,9 @@ Accepts manually pasted tokens and sets authentication cookies.
 }
 ```
 
-#### `GET /api/get-tokens`
-Retrieves current tokens for export.
-
-**Response:**
-```json
-{
-  "accessToken": "BQD...",
-  "refreshToken": "AQD...",
-  "expires": 1234567890
-}
-```
-
 ### Frontend Components
 
 - **`TokenPasteView`**: Form for pasting tokens on preview/local environments
-- **`TokenExportDialog`**: Dialog for exporting tokens from the main app
 - **Environment Detection**: Automatically detects preview URLs (contains `lupanni-lp.workers.dev`) and localhost
 
 ### Token Refresh
@@ -89,7 +79,7 @@ The refresh token flow (`/refresh-token` endpoint) works the same way regardless
 To test this feature locally:
 
 1. Deploy to a preview URL or run locally with `pnpm run dev`
-2. Open the production app and export your tokens
+2. Open the production app, authenticate, and extract tokens from cookies
 3. Paste the tokens into the preview/local environment
 4. Verify that all features work as expected
 

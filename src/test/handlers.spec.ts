@@ -1,4 +1,4 @@
-import { handleOptions, handleLogin, handleFeatureFlags, handleSetTokens, handleGetTokens } from '../handlers.js';
+import { handleOptions, handleLogin, handleFeatureFlags, handleSetTokens } from '../handlers.js';
 import type { Env } from '../types.js';
 
 describe('handlers', () => {
@@ -230,87 +230,6 @@ describe('handlers', () => {
       );
 
       const response = await handleSetTokens(request, env);
-
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://api.example.com');
-    });
-  });
-
-  describe('handleGetTokens', () => {
-    const createRequestWithCookies = (url: string, method: string, cookies?: string, origin?: string): Request => {
-      const headers = new Headers();
-      if (cookies) headers.set('Cookie', cookies);
-      if (origin) headers.set('Origin', origin);
-      return new Request(url, { method, headers });
-    };
-
-    it('returns 405 for non-GET requests', async () => {
-      const env = createEnv();
-      const request = createRequestWithCookies('https://api.example.com/api/get-tokens', 'POST');
-
-      const response = await handleGetTokens(request, env);
-
-      expect(response.status).toBe(405);
-    });
-
-    it('returns 404 when no tokens are found', async () => {
-      const env = createEnv();
-      const request = createRequestWithCookies('https://api.example.com/api/get-tokens', 'GET');
-
-      const response = await handleGetTokens(request, env);
-
-      expect(response.status).toBe(404);
-      const data = (await response.json()) as { error?: string };
-      expect(data.error).toContain('No tokens found');
-    });
-
-    it('returns 404 when accessToken cookie is invalid', async () => {
-      const env = createEnv();
-      const request = createRequestWithCookies(
-        'https://api.example.com/api/get-tokens',
-        'GET',
-        'accessToken=invalid-json'
-      );
-
-      const response = await handleGetTokens(request, env);
-
-      expect(response.status).toBe(404);
-      const data = (await response.json()) as { error?: string };
-      expect(data.error).toContain('No tokens found');
-    });
-
-    it('returns tokens when valid cookie exists', async () => {
-      const env = createEnv();
-      const tokenData = {
-        token: 'test-access-token',
-        refreshToken: 'test-refresh-token',
-        expires: Date.now() + 3600000
-      };
-      const cookieValue = encodeURIComponent(JSON.stringify(tokenData));
-      const request = createRequestWithCookies(
-        'https://api.example.com/api/get-tokens',
-        'GET',
-        `accessToken=${cookieValue}`
-      );
-
-      const response = await handleGetTokens(request, env);
-
-      expect(response.status).toBe(200);
-      const data = (await response.json()) as { accessToken?: string; refreshToken?: string; expires?: number };
-      expect(data.accessToken).toBe('test-access-token');
-      expect(data.refreshToken).toBe('test-refresh-token');
-      expect(data.expires).toBe(tokenData.expires);
-    });
-
-    it('includes CORS headers in response', async () => {
-      const env = createEnv();
-      const request = createRequestWithCookies(
-        'https://api.example.com/api/get-tokens',
-        'GET',
-        undefined,
-        'https://api.example.com'
-      );
-
-      const response = await handleGetTokens(request, env);
 
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://api.example.com');
     });

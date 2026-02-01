@@ -73,9 +73,15 @@ export function TokenPasteView({ translator }: TokenPasteViewProps): React.JSX.E
                   <strong className="text-foreground">How to get your tokens:</strong>
                 </p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
-                  <li>Open the main app (production URL) in another tab</li>
-                  <li>Click the "Export Tokens" button in the top-right corner</li>
-                  <li>Copy the access token and refresh token</li>
+                  <li>Open the main app (production URL) and log in</li>
+                  <li>Open browser DevTools (F12) → Application/Storage → Cookies</li>
+                  <li>
+                    Find the <code className="text-foreground">accessToken</code> cookie and copy its value
+                  </li>
+                  <li>
+                    Parse the JSON to extract <code className="text-foreground">token</code> and{' '}
+                    <code className="text-foreground">refreshToken</code>
+                  </li>
                   <li>Paste them into the fields below</li>
                 </ol>
               </div>

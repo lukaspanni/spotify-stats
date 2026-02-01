@@ -6,8 +6,7 @@ import {
   handleRefreshToken,
   handleProxy,
   handleFeatureFlags,
-  handleSetTokens,
-  handleGetTokens
+  handleSetTokens
 } from './handlers.js';
 
 export default {
@@ -25,7 +24,6 @@ const handleRequest = async (request: Request, env: Env): Promise<Response> => {
   if (url.pathname === '/refresh-token') return handleRefreshToken(request, env);
   if (url.pathname === '/api/feature-flags') return handleFeatureFlags(request, env);
   if (url.pathname === '/api/set-tokens') return handleSetTokens(request, env);
-  if (url.pathname === '/api/get-tokens') return handleGetTokens(request, env);
   if (url.pathname.startsWith('/proxy-api')) return handleProxy(request, env);
 
   // Serve static assets from the frontend bundle
