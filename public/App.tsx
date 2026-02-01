@@ -11,10 +11,13 @@ import { TranslationMapper } from './translation-mapper';
 import { queryClient } from './query-client';
 import { useFeatureFlags } from './hooks/useFeatureFlags';
 
+// Preview/local environment domain pattern
+const PREVIEW_DOMAIN_PATTERN = 'lupanni-lp.workers.dev';
+
 const isPreviewOrLocalEnv = (): boolean => {
   const hostname = window.location.hostname;
-  // Check if we're on localhost or a preview URL (*.lupanni-lp.workers.dev)
-  return hostname === 'localhost' || hostname.includes('lupanni-lp.workers.dev');
+  // Check if we're on localhost or a preview URL
+  return hostname === 'localhost' || hostname.includes(PREVIEW_DOMAIN_PATTERN);
 };
 
 function AppContent(): React.JSX.Element {

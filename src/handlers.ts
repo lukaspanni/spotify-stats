@@ -158,7 +158,9 @@ export const handleSetTokens = async (request: Request, env: Env): Promise<Respo
 
   const accessToken: AccessToken = {
     token: body.accessToken,
-    expires: body.expires || buildExpiryTimestamp(3600), // Default to 1 hour if not provided
+    // Default to 1 hour (3600 seconds) if expires not provided, which matches Spotify's typical access token lifetime
+    // The token can still be refreshed using the refresh_token when it expires
+    expires: body.expires || buildExpiryTimestamp(3600),
     refreshToken: body.refreshToken
   };
 

@@ -74,7 +74,7 @@ export function TokenPasteView({ translator }: TokenPasteViewProps): React.JSX.E
                 </p>
                 <ol className="list-decimal list-inside space-y-1 ml-4">
                   <li>Open the main app (production URL) in another tab</li>
-                  <li>Click the "Export Tokens" button in the settings</li>
+                  <li>Click the "Export Tokens" button in the top-right corner</li>
                   <li>Copy the access token and refresh token</li>
                   <li>Paste them into the fields below</li>
                 </ol>
