@@ -14,7 +14,7 @@
   },
   "homepage": "https://github.com/lukaspanni/spotify-stats#readme",
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260124.0",
+    "@cloudflare/workers-types": "^4.20260203.0",
     "@eslint/eslintrc": "3.3.3",
     "@eslint/js": "9.39.2",
     "@radix-ui/react-dialog": "^1.1.15",
