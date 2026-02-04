@@ -12,10 +12,7 @@ import {
 
 export class TopListsClientProxy implements TopListsClient {
   private client: DefaultTopListsClient;
-  private cache: Map<
-    string,
-    TopArtistsResponse | TopTracksResponse | AvailableGenreSeedsResponse
-  > = new Map();
+  private cache: Map<string, TopArtistsResponse | TopTracksResponse | AvailableGenreSeedsResponse> = new Map();
 
   constructor(accessToken?: string) {
     this.client = new DefaultTopListsClient(accessToken);
@@ -57,7 +54,8 @@ export class TopListsClientProxy implements TopListsClient {
 
   public async getAvailableGenreSeeds(): Promise<AvailableGenreSeedsResponse> {
     const cacheKey = 'genre-seeds';
-    if (this.cache.has(cacheKey)) return Promise.resolve(this.cache.get(cacheKey) as AvailableGenreSeedsResponse);
+    const cached = this.cache.get(cacheKey) as AvailableGenreSeedsResponse | undefined;
+    if (cached) return cached;
     const result = await this.client.getAvailableGenreSeeds();
     this.cache.set(cacheKey, result);
     return result;
