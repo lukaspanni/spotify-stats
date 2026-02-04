@@ -14,7 +14,7 @@ export class TopListsClientProxy implements TopListsClient {
   private client: DefaultTopListsClient;
   private cache: Map<
     string,
-    TopArtistsResponse | TopTracksResponse | RecommendationsResponse | AvailableGenreSeedsResponse
+    TopArtistsResponse | TopTracksResponse | AvailableGenreSeedsResponse
   > = new Map();
 
   constructor(accessToken?: string) {
