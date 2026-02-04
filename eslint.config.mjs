@@ -15,7 +15,16 @@ const compat = new FlatCompat({
 });
 
 export default [
-  { ignores: ['dist/**', 'node_modules/**', 'webpack.config.js', 'jest.config.js', 'tailwind.config.js'] },
+  {
+    ignores: [
+      '.wrangler/**',
+      'dist/**',
+      'node_modules/**',
+      'webpack.config.js',
+      'vitest.config.ts',
+      'tailwind.config.js'
+    ]
+  },
   ...compat.extends(
     'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
